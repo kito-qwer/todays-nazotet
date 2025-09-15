@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NazoTet</title>
+    <title>Today's NazoTet</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         html, body {
@@ -41,11 +41,9 @@
 </head>
 <body class="bg-white dark:bg-black text-gray-800 dark:text-white flex flex-col h-screen transition-colors duration-300">
 
-    <!-- Main Game Display Area -->
     <main id="main-content" class="flex items-center justify-center overflow-hidden p-2 sm:p-4">
         <div id="game-container" class="flex flex-row items-start justify-center gap-2 sm:gap-4">
 
-            <!-- Left Panel: Hold & Info -->
             <div class="flex flex-col gap-2 sm:gap-4">
                 <div class="bg-gray-900 p-2 sm:p-3 text-center relative">
                     <h2 class="text-sm sm:text-md mb-2 text-white tracking-wider">HOLD</h2>
@@ -71,7 +69,6 @@
                 </div>
             </div>
 
-            <!-- Center Panel: Game Board -->
             <div class="relative">
                 <canvas id="game-canvas" class="border-2 sm:border-4 border-gray-700 game-canvas"></canvas>
                 
@@ -79,10 +76,9 @@
                     <button id="archive-button" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-1 px-4 mb-4 text-sm">
                         Archive
                     </button>
-                    <h2 class="text-2xl text-yellow-400 mb-4">NazoTet</h2>
+                    <h2 class="text-2xl text-yellow-400 mb-4">Today's NazoTet</h2>
 
-                       <!-- Loading Status -->
-                    <p id="loading-message" class="mb-2 text-sm h-4"></p>
+                       <p id="loading-message" class="mb-2 text-sm h-4"></p>
                     <p id="author-info" class="text-sm h-4 text-gray-400 mb-4"></p>
                     
                     <button id="start-button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6">
@@ -92,6 +88,9 @@
 
                 <div id="game-over-screen" class="absolute inset-0 bg-black bg-opacity-75 flex-col items-center justify-center text-center hidden">
                     <h2 id="game-over-title" class="text-red-500">GAME OVER</h2>
+		    <button id="results-share-button" class="mt-6 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4">
+			RESULTS COPY
+		    </button>
                     <div id="game-results" class="text-white mt-4 text-sm text-left mx-auto"></div>
                     <p class="mt-4 text-white">Press 'R' to restart</p>
                     <button id="restart-button" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4">
@@ -99,7 +98,6 @@
                     </button>
                 </div>
 
-                <!-- Archive Menu Modal -->
                 <div id="archive-menu" class="absolute inset-0 bg-black bg-opacity-70 flex-col items-center justify-center p-4 hidden">
                     <div class="bg-gray-800 p-4 w-full max-w-sm max-h-[90%] flex flex-col">
                         <div class="flex justify-between items-center mb-4 flex-shrink-0">
@@ -107,14 +105,12 @@
                             <button id="archive-close-button" class="text-white text-3xl leading-none">&times;</button>
                         </div>
                         <div id="file-list" class="overflow-y-auto space-y-2">
-                            <!-- JS will populate this -->
-                        </div>
+                            </div>
                     </div>
                 </div>
 
             </div>
 
-            <!-- Right Panel: Next -->
             <div class="flex flex-col">
                 <div class="bg-gray-900 p-2 sm:p-3 text-center">
                     <h2 class="text-sm sm:text-md mb-2 text-white tracking-wider">NEXT</h2>
@@ -127,7 +123,6 @@
         </div>
     </main>
 
-    <!-- Mobile Controls Wrapper -->
     <div id="controls-wrapper" class="w-full flex justify-center flex-shrink-0 py-2 sm:p-4">
         <div id="mobile-controls" class="bg-gray-900 bg-opacity-75 p-2 sm:p-4 text-white font-bold w-full">
             <div id="mobile-controls-inner" class="flex items-stretch justify-center">
@@ -787,6 +782,40 @@
                     console.error('Failed to save cleared puzzle state:', e);
                 }
             }
+            
+            _handleShare() {
+                const isWin = this.game.checkWinConditions();
+                const puzzleName = this.currentFileUrl.split('/').pop() || 'NazoTet';
+                const status = isWin ? '✅ GAME CLEAR' : '❌ GAME OVER';
+
+                const results = Object.entries({
+                    'TSS': 'tss', 'TSD': 'tsd', 'TST': 'tst',
+                    'Mini TSS': 'miniTss', 'Mini TSD': 'miniTsd',
+                    'Tetris': 'tetris', 'PC': 'perfectClear'
+                })
+                .filter(([_, key]) => this.game.gameRules[key] > 0) // 目標が設定されているもののみ表示
+                .map(([label, key]) => {
+                    const achieved = this.game.gameStats[key];
+                    const goal = this.game.gameRules[key];
+                    return `${label}: ${achieved}/${goal}`;
+                })
+                .join('\n');
+
+                const shareText = `Today's NazoTet - ${puzzleName}\n\n${status}\n\n${results}\n\n#NazoTet`;
+
+                navigator.clipboard.writeText(shareText).then(() => {
+                    const originalText = this.dom.resultsShareButton.textContent;
+                    this.dom.resultsShareButton.textContent = 'COPIED!';
+                    this.dom.resultsShareButton.disabled = true;
+                    setTimeout(() => {
+                        this.dom.resultsShareButton.textContent = originalText;
+                        this.dom.resultsShareButton.disabled = false;
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy results: ', err);
+                    alert('Could not copy results to clipboard.');
+                });
+            }
 
             _disableControls() {
                 const buttons = [
@@ -885,6 +914,8 @@
                     this.dom[id].addEventListener('touchstart', e => { e.preventDefault(); startPress(action); }, { passive: false });
                 }
                 document.addEventListener('mouseup', endPress); document.addEventListener('touchend', endPress);
+                
+                this.dom.resultsShareButton.addEventListener('click', () => this._handleShare());
             }
         }
 
@@ -908,6 +939,7 @@
                 restartButton: document.getElementById('restart-button'),
                 gameOverTitle: document.getElementById('game-over-title'),
                 gameResults: document.getElementById('game-results'),
+		        resultsShareButton: document.getElementById('results-share-button'),
                 queueContainer: document.getElementById('queue-container'),
                 queueText: document.getElementById('queue-text'),
                 goalsContainer: document.getElementById('goals-container'),
