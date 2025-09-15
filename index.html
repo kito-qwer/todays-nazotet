@@ -860,20 +860,22 @@
                 this.dom.startButton.addEventListener('click', () => this._startGame());
                 
                 this.dom.restartButton.addEventListener('click', () => {
-                    this.gameStarted = false;
-                    this._disableControls();
                     this.renderer.showSetupScreen();
-                    initialLoad();
+                    const fileName = this.currentFileUrl.split('/').pop();
+                    displaySetupInfo(this.currentSetupData, fileName, 'Continuing');
+                    this.dom.startButton.disabled = false;
+                    this.dom.startButton.classList.remove('opacity-50', 'cursor-not-allowed');
                 });
                  this.dom.btnReset.addEventListener('click', e => { e.preventDefault(); this._startGame(); });
 
                 document.addEventListener('keydown', e => {
                     if (this.game.gameOver) {
                         if (e.code === 'KeyR') {
-                            this.gameStarted = false;
-                            this._disableControls();
                             this.renderer.showSetupScreen();
-                            initialLoad();
+                            const fileName = this.currentFileUrl.split('/').pop();
+                            displaySetupInfo(this.currentSetupData, fileName, 'Continuing');
+                            this.dom.startButton.disabled = false;
+                            this.dom.startButton.classList.remove('opacity-50', 'cursor-not-allowed');
                         }
                         return;
                     }
@@ -1009,13 +1011,8 @@
                 DOM.startButton.disabled = true;
                 DOM.startButton.classList.add('opacity-50', 'cursor-not-allowed');
 
-                let urlToLoad = localStorage.getItem('nazotet_lastLoadedUrl');
-                let loadedFromStorage = !!urlToLoad;
-
-                if (!urlToLoad) {
-                    const todayDateStr = getFormattedDate();
-                    urlToLoad = `data/${todayDateStr}.dat`;
-                }
+                const todayDateStr = getFormattedDate();
+                let urlToLoad = `data/${todayDateStr}.dat`
 
                 let result = await loadData(urlToLoad);
 
@@ -1023,16 +1020,13 @@
                     console.log(`${urlToLoad} not found. Trying sample.dat...`);
                     urlToLoad = 'data/sample.dat';
                     result = await loadData(urlToLoad);
-                    loadedFromStorage = false;
                 }
 
                 if (result.success) {
                     const fileName = result.url.split('/').pop();
-                    localStorage.setItem('nazotet_lastLoadedUrl', result.url);
                     controller.setCurrentSetupData(result.text, result.url);
                     
-                    const statusText = loadedFromStorage ? 'Continuing' : 'Loaded';
-                    displaySetupInfo(result.text, fileName, statusText);
+                    displaySetupInfo(result.text, fileName, 'Loaded');
                     
                     game.reset(result.text);
                     game.tetromino = null;
@@ -1042,7 +1036,6 @@
                     DOM.startButton.classList.remove('opacity-50', 'cursor-not-allowed');
                 } else {
                     controller.setCurrentSetupData('', '');
-                    localStorage.removeItem('nazotet_lastLoadedUrl');
                     displaySetupInfo(null, 'any puzzle data', 'Not found');
                     DOM.authorInfo.textContent = '';
                     game.reset('');
@@ -1055,7 +1048,6 @@
                 const result = await loadData(url);
                 const fileName = result.url.split('/').pop();
                 if (result.success) {
-                    localStorage.setItem('nazotet_lastLoadedUrl', result.url);
                     controller.setCurrentSetupData(result.text, result.url);
                     displaySetupInfo(result.text, fileName, 'Loaded');
                     game.reset(result.text);
