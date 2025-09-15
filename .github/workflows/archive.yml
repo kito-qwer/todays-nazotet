@@ -1,0 +1,27 @@
+name: Append archive.json
+
+on:
+  schedule:
+    - cron: '0 15 * * *' # 日本時間 00:00
+  workflow_dispatch:
+
+jobs:
+  append:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run append script
+        run: bash .github/scripts/append.sh
+
+      - name: Commit changes
+        run: |
+          if git diff --quiet; then
+            echo "No changes to commit"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add data/archive.json
+            git commit -m "append archive $(date -d '9 hours' +%Y%m%d)"
+            git push
+          fi
