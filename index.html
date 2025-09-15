@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NazoTet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        html, body {
+            height: 100%;
+            overflow: hidden; /* Prevent bouncing scroll on mobile */
+        }
+        body {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            touch-action: manipulation; /* Disable zoom on double-tap */
+            display: flex;
+            flex-direction: column;
+        }
+        .game-canvas {
+            image-rendering: -moz-crisp-edges;
+            image-rendering: -webkit-crisp-edges;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        #game-over-screen h2 {
+            font-size: 3rem;
+            line-height: 1;
+        }
+        main {
+            flex-grow: 1;
+            min-height: 0; /* Important for flex-grow to work in a flex column */
+        }
+        #controls-wrapper {
+            flex-shrink: 0; /* Prevent controls from shrinking */
+        }
+        /* aspect-ratio is now handled by JS */
+        #drop-buttons, #history-buttons, #reset-button-container {
+             height: 100%;
+        }
+    </style>
+</head>
+<body class="bg-white dark:bg-black text-gray-800 dark:text-white flex flex-col h-screen transition-colors duration-300">
+
+    <!-- Main Game Display Area -->
+    <main id="main-content" class="flex items-center justify-center overflow-hidden p-2 sm:p-4">
+        <div id="game-container" class="flex flex-row items-start justify-center gap-2 sm:gap-4">
+
+            <!-- Left Panel: Hold & Info -->
+            <div class="flex flex-col gap-2 sm:gap-4">
+                <div class="bg-gray-900 p-2 sm:p-3 text-center relative">
+                    <h2 class="text-sm sm:text-md mb-2 text-white tracking-wider">HOLD</h2>
+                    <canvas id="hold-canvas" class="mx-auto bg-black game-canvas"></canvas>
+                    <div id="hold-disabled-overlay" class="absolute inset-0 bg-black bg-opacity-70 text-red-500 text-6xl font-black flex items-center justify-center hidden">×</div>
+                </div>
+                <div class="bg-gray-900 p-2 sm:p-3 text-center text-white">
+                    <h2 class="text-sm sm:text-md mb-2 tracking-wider">KEYS</h2>
+                    <div class="text-xs text-left space-y-1">
+                        <p><span class="font-bold text-blue-400">←→</span>: MOVE</p>
+                        <p><span class="font-bold text-blue-400">↓</span>: SOFT DROP</p>
+                        <p><span class="font-bold text-blue-400">↑</span>: ROTATE R</p>
+                        <p><span class="font-bold text-blue-400">Z</span>: ROTATE L</p>
+                        <p><span class="font-bold text-blue-400">SPACE</span>: HARD DROP</p>
+                        <p><span class="font-bold text-blue-400">C</span>: HOLD</p>
+                        <p><span class="font-bold text-blue-400">U</span>: UNDO</p>
+                        <p><span class="font-bold text-blue-400">I</span>: REDO</p>
+                    </div>
+                </div>
+                <div id="goals-container" class="bg-gray-900 p-2 sm:p-3 text-center text-white hidden">
+                    <h2 class="text-sm sm:text-md mb-2 tracking-wider">GOALS</h2>
+                    <div id="goals-list" class="text-xs text-left space-y-1"></div>
+                </div>
+            </div>
+
+            <!-- Center Panel: Game Board -->
+            <div class="relative">
+                <canvas id="game-canvas" class="border-2 sm:border-4 border-gray-700 game-canvas"></canvas>
+                
+                <div id="setup-screen" class="absolute inset-0 bg-black bg-opacity-85 flex flex-col items-center justify-center text-center p-4 overflow-y-auto">
+                    <button id="archive-button" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-1 px-4 mb-4 text-sm">
+                        Archive
+                    </button>
+                    <h2 class="text-2xl text-yellow-400 mb-4">NazoTet</h2>
+
+                       <!-- Loading Status -->
+                    <p id="loading-message" class="mb-2 text-sm h-4"></p>
+                    <p id="author-info" class="text-sm h-4 text-gray-400 mb-4"></p>
+                    
+                    <button id="start-button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6">
+                        START
+                    </button>
+                </div>
+
+                <div id="game-over-screen" class="absolute inset-0 bg-black bg-opacity-75 flex-col items-center justify-center text-center hidden">
+                    <h2 id="game-over-title" class="text-red-500">GAME OVER</h2>
+                    <div id="game-results" class="text-white mt-4 text-sm text-left mx-auto"></div>
+                    <p class="mt-4 text-white">Press 'R' to restart</p>
+                    <button id="restart-button" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4">
+                        RESTART
+                    </button>
+                </div>
+
+                <!-- Archive Menu Modal -->
+                <div id="archive-menu" class="absolute inset-0 bg-black bg-opacity-70 flex-col items-center justify-center p-4 hidden">
+                    <div class="bg-gray-800 p-4 w-full max-w-sm max-h-[90%] flex flex-col">
+                        <div class="flex justify-between items-center mb-4 flex-shrink-0">
+                            <h3 class="text-lg text-yellow-400">Archive</h3>
+                            <button id="archive-close-button" class="text-white text-3xl leading-none">&times;</button>
+                        </div>
+                        <div id="file-list" class="overflow-y-auto space-y-2">
+                            <!-- JS will populate this -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Panel: Next -->
+            <div class="flex flex-col">
+                <div class="bg-gray-900 p-2 sm:p-3 text-center">
+                    <h2 class="text-sm sm:text-md mb-2 text-white tracking-wider">NEXT</h2>
+                    <canvas id="next-canvas" class="mx-auto bg-black game-canvas"></canvas>
+                    <div id="queue-container" class="mt-2 pt-2 border-t border-gray-700 hidden">
+                        <div id="queue-text" class="text-yellow-400 text-sm break-all"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Mobile Controls Wrapper -->
+    <div id="controls-wrapper" class="w-full flex justify-center flex-shrink-0 py-2 sm:p-4">
+        <div id="mobile-controls" class="bg-gray-900 bg-opacity-75 p-2 sm:p-4 text-white font-bold w-full">
+            <div id="mobile-controls-inner" class="flex items-stretch justify-center">
+                <button id="btn-hold" class="bg-purple-600 active:bg-purple-500 text-sm flex items-center justify-center">HOLD</button>
+                <button id="btn-left" class="bg-gray-700 active:bg-gray-600 text-2xl flex items-center justify-center">←</button>
+                <div id="drop-buttons" class="flex flex-col">
+                    <button id="btn-hard-drop" class="bg-yellow-500 active:bg-yellow-400 text-black flex-grow text-sm flex items-center justify-center">DROP</button>
+                    <button id="btn-soft-drop" class="bg-gray-700 active:bg-gray-600 flex-grow flex items-center justify-center">↓</button>
+                </div>
+                <button id="btn-right" class="bg-gray-700 active:bg-gray-600 text-2xl flex items-center justify-center">→</button>
+                <button id="btn-rotate-left" class="bg-blue-600 active:bg-blue-500 text-2xl flex items-center justify-center">⟲</button>
+                <button id="btn-rotate-right" class="bg-blue-600 active:bg-blue-500 text-2xl flex items-center justify-center">⟳</button>
+                <div id="history-buttons" class="flex flex-col">
+                    <button id="btn-undo" class="bg-gray-600 active:bg-gray-500 text-sm flex-grow flex items-center justify-center">UNDO</button>
+                    <button id="btn-redo" class="bg-gray-600 active:bg-gray-500 text-sm flex-grow flex items-center justify-center">REDO</button>
+                </div>
+                <div id="reset-button-container" class="flex flex-col">
+                     <button id="btn-reset" class="bg-red-600 active:bg-red-500 text-sm flex-grow flex items-center justify-center">RESET</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+    (() => {
+        'use strict';
+        
+        // Date formatting utility
+        function getFormattedDate(offset = 0) {
+            const d = new Date();
+            d.setDate(d.getDate() + offset);
+            const y = d.getFullYear();
+            const m = (d.getMonth() + 1).toString().padStart(2, '0');
+            const day = d.getDate().toString().padStart(2, '0');
+            return `${y}${m}${day}`;
+        }
+
+        // ---------------------------------------------------------------------
+        // 1. CONSTANTS & CONFIGURATION
+        // ---------------------------------------------------------------------
+        const GameConstants = {
+            COLS: 10,
+            ROWS: 23,
+            HIDDEN_ROWS: 7,
+            COLORS: {
+                'I': '#00FFFF', 'O': '#FFFF00', 'T': '#FF00FF',
+                'S': '#00FF00', 'Z': '#FF0000', 'J': '#0000FF',
+                'L': '#FFA500', 'G': '#808080',
+                'GHOST': 'rgba(255, 255, 255, 0.2)'
+            },
+            SHAPES: {
+                'I': [[0,0,0,0], [1,1,1,1], [0,0,0,0], [0,0,0,0]],
+                'O': [[1,1], [1,1]],
+                'T': [[0,1,0], [1,1,1], [0,0,0]],
+                'S': [[0,1,1], [1,1,0], [0,0,0]],
+                'Z': [[1,1,0], [0,1,1], [0,0,0]],
+                'J': [[1,0,0], [1,1,1], [0,0,0]],
+                'L': [[0,0,1], [1,1,1], [0,0,0]]
+            },
+            WALL_KICK_DATA_JLSTZ: [
+                [[-1, 0], [-1, 1], [0, -2], [-1, -2]],
+                [[1, 0], [1, -1], [0, 2], [1, 2]],
+                [[1, 0], [1, -1], [0, 2], [1, 2]],
+                [[-1, 0], [-1, 1], [0, -2], [-1, -2]],
+                [[1, 0], [1, 1], [0, -2], [1, -2]],
+                [[-1, 0], [-1, -1], [0, 2], [-1, 2]],
+                [[-1, 0], [-1, -1], [0, 2], [-1, 2]],
+                [[1, 0], [1, 1], [0, -2], [1, -2]],
+            ],
+            WALL_KICK_DATA_I: [
+                [[-2, 0], [1, 0], [-2, 1], [1, -2]],
+                [[2, 0], [-1, 0], [2, -1], [-1, 2]],
+                [[-1, 0], [2, 0], [-1, -2], [2, 1]],
+                [[1, 0], [-2, 0], [1, 2], [-2, -1]],
+                [[2, 0], [-1, 0], [2, -1], [-1, 2]],
+                [[-2, 0], [1, 0], [-2, 1], [1, -2]],
+                [[1, 0], [-2, 0], [1, 2], [-2, -1]],
+                [[-2, 0], [1, 0], [-2, -2], [2, 1]],
+            ],
+        };
+
+        // ---------------------------------------------------------------------
+        // 2. TETROMINO CLASS
+        // ---------------------------------------------------------------------
+        class Tetromino {
+            constructor(type) {
+                this.type = type;
+                this.shape = GameConstants.SHAPES[type];
+                this.rotation = 0;
+                this.x = Math.floor(GameConstants.COLS / 2) - Math.ceil(this.shape[0].length / 2);
+                this.y = this.type === 'I' ? 0 : 1;
+            }
+            get color() {
+                return GameConstants.COLORS[this.type];
+            }
+        }
+
+        // ---------------------------------------------------------------------
+        // 3. TETRIS GAME LOGIC (MODEL)
+        // ---------------------------------------------------------------------
+        class TetrisGame {
+            constructor() {
+                this.board = [];
+                this.tetromino = null;
+                this.nextBag = [];
+                this.heldTetromino = null;
+                this.gameOver = false;
+                this.gameStats = {};
+                this.gameRules = {};
+                this.history = [];
+                this.historyIndex = -1;
+                this.lastMoveWasRotation = false;
+                this.lastRotationKickIndex = -1;
+            }
+
+            _createBoard() {
+                return Array.from({ length: GameConstants.ROWS + GameConstants.HIDDEN_ROWS }, () => Array(GameConstants.COLS).fill(0));
+            }
+            
+            reset(input) {
+                this.board = this._createBoard();
+                this.nextBag = [];
+                this.heldTetromino = null;
+                this.gameOver = false;
+                this.lastMoveWasRotation = false;
+                this.lastRotationKickIndex = -1;
+                this.gameStats = { tss: 0, tsd: 0, tst: 0, miniTss: 0, miniTsd: 0, tetris: 0, perfectClear: 0 };
+                this.gameRules = { tss: 0, tsd: 0, tst: 0, miniTss: 0, miniTsd: 0, tetris: 0, perfectClear: 0, holdEnabled: true };
+                
+                this._parseInput(input);
+                
+                this.tetromino = this._getNextTetromino();
+
+                if (!this.tetromino && this.nextBag.length === 0) {
+                    this.gameOver = true;
+                    return;
+                }
+                
+                this.history = [];
+                this.historyIndex = -1;
+                this.saveState();
+            }
+
+            _parseInput(text) {
+                if (!text || text.trim() === '') return;
+                const trimmedText = text.trim();
+                const hasKeywords = trimmedText.includes('- field') || trimmedText.includes('- next') || trimmedText.includes('- rule') || trimmedText.includes('- author');
+                if (hasKeywords) {
+                    const sections = trimmedText.split(/-\s*(field|next|rule|author)\s*/);
+                    for (let i = 1; i < sections.length; i += 2) {
+                        const header = sections[i].toLowerCase().trim();
+                        const content = sections[i + 1];
+                        if (header === 'field' && content) {
+                            const fieldLines = content.trim().split('\n').map(line => line.trim());
+                            const fieldHeight = fieldLines.length;
+                            const startRow = (GameConstants.ROWS + GameConstants.HIDDEN_ROWS) - fieldHeight;
+                            for (let y = 0; y < fieldHeight; y++) {
+                                if (startRow + y >= 0 && startRow + y < this.board.length) {
+                                    const line = fieldLines[y];
+                                    for (let x = 0; x < GameConstants.COLS; x++) {
+                                        const char = line[x] || 'N';
+                                        if (char !== 'N' && char !== '-') this.board[startRow + y][x] = char.toUpperCase();
+                                    }
+                                }
+                            }
+                        } else if (header === 'next' && content) {
+                            if (/^[IOTZSLJ]+$/i.test(content.trim())) this.nextBag = content.trim().toUpperCase().split('');
+                        } else if (header === 'rule' && content) {
+                            content.trim().split('\n').forEach(line => {
+                                const match = line.trim().match(/--\s*(\w+)\s+([a-zA-Z0-9]+)/);
+                                if (!match) return;
+                                const key = match[1].toUpperCase(), value = match[2], numValue = parseInt(value, 10);
+                                switch(key) {
+                                    case 'TSS': if(!isNaN(numValue)) this.gameRules.tss = numValue; break;
+                                    case 'TSD': if(!isNaN(numValue)) this.gameRules.tsd = numValue; break;
+                                    case 'TST': if(!isNaN(numValue)) this.gameRules.tst = numValue; break;
+                                    case 'TSSM': if(!isNaN(numValue)) this.gameRules.miniTss = numValue; break;
+                                    case 'TSDM': if(!isNaN(numValue)) this.gameRules.miniTsd = numValue; break;
+                                    case 'TET': if(!isNaN(numValue)) this.gameRules.tetris = numValue; break;
+                                    case 'PC': if(!isNaN(numValue)) this.gameRules.perfectClear = numValue; break;
+                                    case 'HOLD': this.gameRules.holdEnabled = value.toLowerCase() === 'true' || value === '1'; break;
+                                }
+                            });
+                        }
+                    }
+                } else if (/^[IOTZSLJ]+$/i.test(trimmedText)) this.nextBag = trimmedText.toUpperCase().split('');
+            }
+
+            _getNextTetromino() {
+                return this.nextBag.length === 0 ? null : new Tetromino(this.nextBag.shift());
+            }
+            
+            isValid(piece) {
+                for (let y = 0; y < piece.shape.length; y++) {
+                    for (let x = 0; x < piece.shape[y].length; x++) {
+                        if (piece.shape[y][x]) {
+                            const newX = piece.x + x, newY = piece.y + y + GameConstants.HIDDEN_ROWS;
+                            if (newX < 0 || newX >= GameConstants.COLS || newY >= GameConstants.ROWS + GameConstants.HIDDEN_ROWS || (this.board[newY] && this.board[newY][newX])) return false;
+                        }
+                    }
+                }
+                return true;
+            }
+
+            move(dx, dy) {
+                if (!this.tetromino || this.gameOver) return;
+                this.tetromino.x += dx; this.tetromino.y += dy;
+                if (!this.isValid(this.tetromino)) {
+                    this.tetromino.x -= dx; this.tetromino.y -= dy;
+                } else {
+                    this.lastMoveWasRotation = false; this.lastRotationKickIndex = -1;
+                }
+            }
+
+            rotate(clockwise = true) {
+                if (!this.tetromino || this.gameOver) return;
+                const piece = this.tetromino, originalShape = piece.shape, N = originalShape.length;
+                const newShape = Array.from({ length: N }, () => Array(N).fill(0));
+                for (let y = 0; y < N; y++) {
+                    for (let x = 0; x < N; x++) {
+                        if (clockwise) newShape[x][N - 1 - y] = originalShape[y][x];
+                        else newShape[N - 1 - x][y] = originalShape[y][x];
+                    }
+                }
+                piece.shape = newShape;
+                const from = piece.rotation, to = (piece.rotation + (clockwise ? 1 : 3)) % 4;
+                const kickData = piece.type === 'I' ? GameConstants.WALL_KICK_DATA_I : GameConstants.WALL_KICK_DATA_JLSTZ;
+                const tests = [[0, 0], ...kickData[clockwise ? from * 2 : to * 2 + 1]];
+                for (let i = 0; i < tests.length; i++) {
+                    const [dx, dy] = tests[i];
+                    piece.x += dx; piece.y -= dy;
+                    if (this.isValid(piece)) {
+                        piece.rotation = to; this.lastMoveWasRotation = true; this.lastRotationKickIndex = i; return;
+                    }
+                    piece.x -= dx; piece.y += dy;
+                }
+                piece.shape = originalShape;
+            }
+            
+            hardDrop() {
+                if (!this.tetromino || this.gameOver) return;
+                while (this.isValid(this.tetromino)) this.tetromino.y++;
+                this.tetromino.y--;
+                this._lockTetromino();
+            }
+
+            hold() {
+                if (!this.tetromino || this.gameOver || !this.gameRules.holdEnabled || (!this.heldTetromino && this.nextBag.length === 0)) return;
+                const temp = this.heldTetromino ? this.heldTetromino.type : null;
+                this.heldTetromino = new Tetromino(this.tetromino.type);
+                this.tetromino = temp ? new Tetromino(temp) : this._getNextTetromino();
+                if (!this.tetromino || !this.isValid(this.tetromino)) {
+                    this.gameOver = true; this.tetromino = null;
+                }
+                this.lastMoveWasRotation = false; this.lastRotationKickIndex = -1;
+                this.saveState();
+            }
+
+            _lockTetromino() {
+                let tSpinType = 'none';
+                if (this.tetromino.type === 'T' && this.lastMoveWasRotation) {
+                    const cx = this.tetromino.x + 1, cy = this.tetromino.y + 1;
+                    const corners = [[cx - 1, cy - 1], [cx + 1, cy - 1], [cx - 1, cy + 1], [cx + 1, cy + 1]];
+                    let filledCorners = 0;
+                    const cornerStates = corners.map(([x, y]) => {
+                        const boardY = y + GameConstants.HIDDEN_ROWS;
+                        if (x < 0 || x >= GameConstants.COLS || boardY < 0 || boardY >= GameConstants.ROWS + GameConstants.HIDDEN_ROWS || (this.board[boardY] && this.board[boardY][x])) {
+                            filledCorners++; return true;
+                        }
+                        return false;
+                    });
+                    if (filledCorners >= 3) {
+                        if (this.lastRotationKickIndex === 4) tSpinType = 'tSpin';
+                        else {
+                            const [A, B, C, D] = cornerStates, r = this.tetromino.rotation;
+                            tSpinType = ((r === 0 && A && B) || (r === 1 && B && D) || (r === 2 && C && D) || (r === 3 && A && C)) ? 'tSpin' : 'miniTSpin';
+                        }
+                    }
+                }
+                this.tetromino.shape.forEach((row, y) => row.forEach((value, x) => {
+                    if (value) {
+                        const boardY = this.tetromino.y + y + GameConstants.HIDDEN_ROWS;
+                        if (boardY >= 0) this.board[boardY][this.tetromino.x + x] = this.tetromino.type;
+                    }
+                }));
+                const linesCleared = this._clearLines();
+                if (tSpinType === 'tSpin') {
+                    if (linesCleared === 1) this.gameStats.tss++; else if (linesCleared === 2) this.gameStats.tsd++; else if (linesCleared === 3) this.gameStats.tst++;
+                } else if (tSpinType === 'miniTSpin') {
+                    if (linesCleared === 1) this.gameStats.miniTss++; else if (linesCleared === 2) this.gameStats.miniTsd++;
+                }
+                this.tetromino = this._getNextTetromino();
+                if (!this.tetromino && this.heldTetromino) {
+                    this.tetromino = new Tetromino(this.heldTetromino.type); this.heldTetromino = null;
+                }
+                this.lastMoveWasRotation = false; this.lastRotationKickIndex = -1;
+                this.saveState();
+                if (!this.tetromino || !this.isValid(this.tetromino)) this.gameOver = true;
+            }
+
+            _clearLines() {
+                let linesCleared = 0;
+                this.board = this.board.filter(row => {
+                    if (row.every(cell => cell !== 0)) { linesCleared++; return false; }
+                    return true;
+                });
+                if (linesCleared === 4) this.gameStats.tetris++;
+                for (let i = 0; i < linesCleared; i++) this.board.unshift(Array(GameConstants.COLS).fill(0));
+                if (linesCleared > 0 && this.board.every(row => row.every(cell => cell === 0))) this.gameStats.perfectClear++;
+                return linesCleared;
+            }
+
+            checkWinConditions() {
+                if (Object.values(this.gameRules).every(val => val === 0 || typeof val === 'boolean')) return false;
+                return this.gameStats.tss >= this.gameRules.tss && this.gameStats.tsd >= this.gameRules.tsd && this.gameStats.tst >= this.gameRules.tst && this.gameStats.miniTss >= this.gameRules.miniTss && this.gameStats.miniTsd >= this.gameRules.miniTsd && this.gameStats.tetris >= this.gameRules.tetris && this.gameStats.perfectClear >= this.gameRules.perfectClear;
+            }
+
+            saveState() {
+                if (this.gameOver) return;
+                this.history = this.history.slice(0, this.historyIndex + 1);
+                this.history.push({
+                    board: JSON.parse(JSON.stringify(this.board)),
+                    tetromino: this.tetromino ? JSON.parse(JSON.stringify(this.tetromino)) : null,
+                    nextBag: [...this.nextBag],
+                    heldTetromino: this.heldTetromino ? JSON.parse(JSON.stringify(this.heldTetromino)) : null,
+                    gameStats: { ...this.gameStats },
+                });
+                this.historyIndex++;
+            }
+
+            restoreState(state) {
+                this.board = JSON.parse(JSON.stringify(state.board));
+                this.tetromino = state.tetromino ? Object.assign(new Tetromino(state.tetromino.type), state.tetromino) : null;
+                this.nextBag = [...state.nextBag];
+                this.heldTetromino = state.heldTetromino ? Object.assign(new Tetromino(state.heldTetromino.type), state.heldTetromino) : null;
+                this.gameStats = { ...state.gameStats };
+            }
+
+            undo() {
+                if (this.historyIndex > 0) this.restoreState(this.history[--this.historyIndex]);
+            }
+
+            redo() {
+                if (this.historyIndex < this.history.length - 1) this.restoreState(this.history[++this.historyIndex]);
+            }
+
+            getState() {
+                return { ...this, isValid: (piece) => this.isValid(piece) };
+            }
+        }
+
+        // ---------------------------------------------------------------------
+        // 4. GAME RENDERER (VIEW)
+        // ---------------------------------------------------------------------
+        class GameRenderer {
+            constructor(dom) {
+                this.dom = dom;
+                this.ctx = dom.canvas.getContext('2d');
+                this.nextCtx = dom.nextCanvas.getContext('2d');
+                this.holdCtx = dom.holdCanvas.getContext('2d');
+                
+                [this.ctx, this.nextCtx, this.holdCtx].forEach(ctx => {
+                    ctx.imageSmoothingEnabled = false;
+                });
+
+                this.blockSize = 20; this.sideBlockSize = 12;
+            }
+
+            init() {
+                this.resize(); this.showSetupScreen();
+                const emptyBoard = Array.from({ length: GameConstants.ROWS + GameConstants.HIDDEN_ROWS }, () => Array(GameConstants.COLS).fill(0));
+                this.render({ board: emptyBoard, gameRules: {holdEnabled: true} });
+            }
+
+            render(state) {
+                this._drawBoard(state.board, state.tetromino, state.isValid);
+                this._drawNext(state.nextBag);
+                this._drawHold(state.heldTetromino);
+                this._drawQueueText(state.nextBag);
+                this._updateGoalsDisplay(state.gameStats, state.gameRules);
+                this._updateHoldOverlay(state.gameRules.holdEnabled);
+            }
+            
+            _drawBlock(context, x, y, color, scale) {
+                context.fillStyle = color;
+                context.fillRect(x, y, 1, 1);
+                
+                const dpr = window.devicePixelRatio || 1;
+                context.strokeStyle = '#000000';
+                context.lineWidth = 1 / (scale * dpr); 
+                const inset = context.lineWidth / 2;
+                context.strokeRect(x + inset, y + inset, 1 - context.lineWidth, 1 - context.lineWidth);
+            }
+
+            _drawPiece(context, piece, color, scale) {
+                piece.shape.forEach((row, y) => row.forEach((value, x) => {
+                    if (value) {
+                        const drawY = piece.y + y;
+                        if (drawY >= 0) {
+                            if (color === GameConstants.COLORS.GHOST) {
+                                context.fillStyle = color;
+                                context.fillRect(piece.x + x, drawY, 1, 1);
+                            } else {
+                                this._drawBlock(context, piece.x + x, drawY, color, scale);
+                            }
+                        }
+                    }
+                }));
+            }
+            
+            _drawBoard(board, tetromino, isValidFn) {
+                this.ctx.save();
+                this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+                this.ctx.clearRect(0, 0, this.dom.canvas.width, this.dom.canvas.height);
+                this.ctx.restore();
+
+                this.ctx.fillStyle = '#000000';
+                this.ctx.fillRect(0, 0, GameConstants.COLS, GameConstants.ROWS);
+                this.ctx.fillStyle = '#1f2937';
+                this.ctx.fillRect(0, 0, GameConstants.COLS, 3);
+
+                board.slice(GameConstants.HIDDEN_ROWS).forEach((row, y) => row.forEach((value, x) => {
+                    if (value) this._drawBlock(this.ctx, x, y, GameConstants.COLORS[value], this.blockSize);
+                }));
+
+                if (tetromino && isValidFn) {
+                    const ghost = JSON.parse(JSON.stringify(tetromino));
+                    while (isValidFn(ghost)) ghost.y++;
+                    ghost.y--;
+                    this._drawPiece(this.ctx, ghost, GameConstants.COLORS.GHOST, this.blockSize);
+                    this._drawPiece(this.ctx, tetromino, tetromino.color, this.blockSize);
+                }
+            }
+
+            _drawSidePanel(context, canvas, pieceTypes, isHold) {
+                const dpr = window.devicePixelRatio || 1;
+                const blockPixelSize = this.sideBlockSize * dpr;
+                const lineWidth = 1;
+
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                context.fillStyle = '#000000';
+                context.fillRect(0, 0, canvas.width, canvas.height);
+
+                if (!pieceTypes || pieceTypes.length === 0) { return; }
+
+                pieceTypes.forEach((type, i) => {
+                    const shape = GameConstants.SHAPES[type];
+                    const color = GameConstants.COLORS[type];
+                    const w = shape[0].length;
+                    const h = shape.length;
+
+                    shape.forEach((row, y) => {
+                        row.forEach((value, x) => {
+                            if (value) {
+                                const piecePixelWidth = w * blockPixelSize;
+                                const piecePixelHeight = h * blockPixelSize;
+
+                                const offsetX = Math.floor((canvas.width - piecePixelWidth) / 2);
+                                
+                                let offsetY;
+                                if (isHold) {
+                                    offsetY = Math.floor((canvas.height - piecePixelHeight) / 2);
+                                } else {
+                                    const slotPixelHeight = 3 * this.sideBlockSize * dpr;
+                                    const slotTop = i * slotPixelHeight;
+                                    offsetY = slotTop + Math.floor((slotPixelHeight - piecePixelHeight) / 2);
+                                }
+
+                                const pX = offsetX + x * blockPixelSize;
+                                const pY = offsetY + y * blockPixelSize;
+
+                                context.fillStyle = color;
+                                context.fillRect(pX, pY, blockPixelSize, blockPixelSize);
+                                
+                                context.strokeStyle = '#000000';
+                                context.lineWidth = lineWidth;
+                                const inset = lineWidth / 2;
+                                context.strokeRect(pX + inset, pY + inset, blockPixelSize - lineWidth, blockPixelSize - lineWidth);
+                            }
+                        });
+                    });
+                });
+            }
+            
+            _drawNext(nextBag) { this._drawSidePanel(this.nextCtx, this.dom.nextCanvas, nextBag ? nextBag.slice(0, 10) : [], false); }
+            _drawHold(held) { this._drawSidePanel(this.holdCtx, this.dom.holdCanvas, held ? [held.type] : [], true); }
+            _drawQueueText(nextBag) {
+                const queue = nextBag ? nextBag.slice(10) : [];
+                this.dom.queueContainer.classList.toggle('hidden', queue.length === 0);
+                if (queue.length > 0) this.dom.queueText.textContent = queue.join('');
+            }
+            _updateGoalsDisplay(stats, rules) {
+                if (!stats || !rules) return;
+                const mapping = [{k:'tss',l:'TSS'},{k:'tsd',l:'TSD'},{k:'tst',l:'TST'},{k:'miniTss',l:'Mini TSS'},{k:'miniTsd',l:'Mini TSD'},{k:'tetris',l:'Tetris'},{k:'perfectClear',l:'PC'}];
+                let hasGoals = false, html = '';
+                mapping.forEach(g => {
+                    if (rules[g.k] > 0) {
+                        hasGoals = true;
+                        html += `<p><span class="font-bold text-yellow-400">${g.l}</span>: ${Math.max(0, rules[g.k] - stats[g.k])}</p>`;
+                    }
+                });
+                this.dom.goalsContainer.classList.toggle('hidden', !hasGoals);
+                if (hasGoals) this.dom.goalsList.innerHTML = html;
+            }
+            _updateHoldOverlay(enabled) {
+                // This function now only controls the visual 'X' overlay.
+                // The GameController is responsible for the button's enabled/disabled state.
+                this.dom.holdDisabledOverlay.classList.toggle('hidden', enabled);
+            }
+
+            showSetupScreen() {
+                this.dom.setupScreen.classList.remove('hidden'); this.dom.setupScreen.classList.add('flex');
+                this.dom.gameOverScreen.classList.add('hidden'); this.dom.gameOverScreen.classList.remove('flex');
+            }
+            hideSetupScreen() {
+                this.dom.setupScreen.classList.add('hidden'); this.dom.setupScreen.classList.remove('flex');
+            }
+            showGameOverScreen(isWin, stats, rules) {
+                this.dom.gameOverTitle.textContent = isWin ? 'GAME CLEAR' : 'GAME OVER';
+                this.dom.gameOverTitle.classList.toggle('text-green-500', isWin);
+                this.dom.gameOverTitle.classList.toggle('text-red-500', !isWin);
+                this.dom.gameResults.innerHTML = `
+                    <h3 class="text-lg mb-2 text-yellow-400">RESULTS (Goal)</h3>
+                    <table> ${Object.entries({TSS: 'tss', TSD: 'tsd', TST: 'tst', 'Mini TSS': 'miniTss', 'Mini TSD': 'miniTsd', Tetris: 'tetris', 'Perfect Clear': 'perfectClear'})
+                    .map(([label, key]) => `<tr><td class="pr-4">${label}</td><td>: ${stats[key]} (${rules[key]})</td></tr>`).join('')} </table>`;
+                this.dom.gameOverScreen.classList.remove('hidden'); this.dom.gameOverScreen.classList.add('flex');
+            }
+
+            resize() {
+                const mainStyle = getComputedStyle(this.dom.mainContent);
+                const paddingTop = parseFloat(mainStyle.paddingTop);
+                const paddingBottom = parseFloat(mainStyle.paddingBottom);
+                const availableHeight = this.dom.mainContent.clientHeight - paddingTop - paddingBottom;
+                
+                const paddingLeft = parseFloat(mainStyle.paddingLeft);
+                const paddingRight = parseFloat(mainStyle.paddingRight);
+                const availableWidth = this.dom.mainContent.clientWidth - paddingLeft - paddingRight;
+                
+                // Make the board smaller to ensure there is vertical space.
+                this.blockSize = Math.floor(Math.min(availableHeight / (GameConstants.ROWS + 4), availableWidth / 18));
+                this.sideBlockSize = Math.floor(this.blockSize * 0.7);
+
+                const setCanvasSize = (canvas, ctx, logicalWidth, logicalHeight, scale, applyTransform = true) => {
+                    const dpr = window.devicePixelRatio || 1;
+                    const displayWidth = logicalWidth * scale;
+                    const displayHeight = logicalHeight * scale;
+
+                    canvas.width = Math.round(displayWidth * dpr);
+                    canvas.height = Math.round(displayHeight * dpr);
+                    ctx.imageSmoothingEnabled = false;
+
+                    canvas.style.width = `${displayWidth}px`;
+                    canvas.style.height = `${displayHeight}px`;
+
+                    if (applyTransform) {
+                        ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
+                    }
+                };
+                
+                setCanvasSize(this.dom.canvas, this.ctx, GameConstants.COLS, GameConstants.ROWS, this.blockSize, true);
+                setCanvasSize(this.dom.holdCanvas, this.holdCtx, 4, 4, this.sideBlockSize, false);
+                setCanvasSize(this.dom.nextCanvas, this.nextCtx, 4, 30, this.sideBlockSize, false);
+
+                const newControlsWidth = this.dom.gameContainer.offsetWidth > 0 ? this.dom.gameContainer.offsetWidth * 0.95 : availableWidth * 0.9;
+                this.dom.mobileControls.style.width = `${newControlsWidth}px`;
+                this.dom.mobileControls.style.height = 'auto';
+
+                const controlItems = Array.from(this.dom.mobileControlsInner.children);
+                if (controlItems.length > 0) {
+                     const computedStyle = getComputedStyle(this.dom.mobileControls);
+                    const paddingX = parseFloat(computedStyle.paddingLeft) + parseFloat(computedStyle.paddingRight);
+                    const innerWidth = newControlsWidth - paddingX;
+                    const gap = Math.max(4, Math.floor(this.blockSize * 0.1));
+                    this.dom.mobileControlsInner.style.gap = `${gap}px`;
+                    this.dom.dropButtons.style.gap = `${gap}px`; 
+                    this.dom.historyButtons.style.gap = `${gap}px`;
+                    this.dom.resetButtonContainer.style.gap = `${gap}px`;
+                    
+                    const totalGaps = (controlItems.length - 1) * gap;
+                    const itemWidth = (innerWidth - totalGaps) / controlItems.length;
+                    
+                    // Set button height to be twice the width.
+                    const newButtonHeight = itemWidth * 2;
+
+                    controlItems.forEach(item => {
+                        item.style.width = `${itemWidth}px`;
+                        item.style.height = `${newButtonHeight}px`;
+                    });
+
+                    // Set font size for soft drop button
+                    const softDropButton = this.dom.btnSoftDrop;
+                    const baseFontSize = parseFloat(getComputedStyle(this.dom.btnLeft).fontSize);
+                    softDropButton.style.fontSize = `${baseFontSize * 0.8}px`;
+
+                }
+            }
+        }
+
+        // ---------------------------------------------------------------------
+        // 5. GAME CONTROLLER (Handles Input)
+        // ---------------------------------------------------------------------
+        class GameController {
+            constructor(game, renderer, dom) {
+                this.game = game;
+                this.renderer = renderer;
+                this.dom = dom;
+                this.currentSetupData = '';
+                this.currentFileUrl = '';
+                this.gameStarted = false;
+            }
+            init() {
+                this._setupEventListeners();
+                this._disableControls();
+            }
+            _startGame() {
+                this.renderer.hideSetupScreen();
+                this.game.reset(this.currentSetupData);
+                this.gameStarted = true;
+                this._enableControls();
+                if (this.game.gameOver) this._endGame();
+                this._redraw();
+            }
+            _endGame() {
+                this.gameStarted = false;
+                this._disableControls();
+                const isWin = this.game.checkWinConditions();
+                if (isWin) {
+                    this._markPuzzleAsCleared();
+                }
+                this.renderer.showGameOverScreen(isWin, this.game.gameStats, this.game.gameRules);
+            }
+            _redraw() {
+                this.renderer.render(this.game.getState());
+                if (this.game.gameOver) this._endGame();
+            }
+            _handleAction(actionFn) { if (this.gameStarted && !this.game.gameOver) { actionFn(); this._redraw(); } }
+            
+            setCurrentSetupData(data, url) {
+                this.currentSetupData = data;
+                this.currentFileUrl = url;
+            }
+
+            _markPuzzleAsCleared() {
+                if (!this.currentFileUrl) return;
+
+                const fileName = this.currentFileUrl.split('/').pop();
+                try {
+                    const clearedPuzzlesRaw = localStorage.getItem('nazotet_clearedPuzzles');
+                    const clearedPuzzles = clearedPuzzlesRaw ? JSON.parse(clearedPuzzlesRaw) : [];
+                    
+                    if (!clearedPuzzles.includes(fileName)) {
+                        clearedPuzzles.push(fileName);
+                        localStorage.setItem('nazotet_clearedPuzzles', JSON.stringify(clearedPuzzles));
+                    }
+                } catch (e) {
+                    console.error('Failed to save cleared puzzle state:', e);
+                }
+            }
+
+            _disableControls() {
+                const buttons = [
+                    this.dom.btnHold, this.dom.btnLeft, this.dom.btnRight,
+                    this.dom.btnSoftDrop, this.dom.btnHardDrop,
+                    this.dom.btnRotateLeft, this.dom.btnRotateRight,
+                    this.dom.btnUndo, this.dom.btnRedo, this.dom.btnReset
+                ];
+                buttons.forEach(btn => {
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.classList.add('opacity-50', 'cursor-not-allowed');
+                    }
+                });
+            }
+
+            _enableControls() {
+                const buttons = [
+                    this.dom.btnLeft, this.dom.btnRight,
+                    this.dom.btnSoftDrop, this.dom.btnHardDrop,
+                    this.dom.btnRotateLeft, this.dom.btnRotateRight,
+                    this.dom.btnUndo, this.dom.btnRedo, this.dom.btnReset
+                ];
+                buttons.forEach(btn => {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    }
+                });
+                
+                // Handle the HOLD button separately based on game rules
+                if (this.game.gameRules.holdEnabled) {
+                    this.dom.btnHold.disabled = false;
+                    this.dom.btnHold.classList.remove('opacity-50', 'cursor-not-allowed');
+                } else {
+                    this.dom.btnHold.disabled = true;
+                    this.dom.btnHold.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+            }
+
+            _setupEventListeners() {
+                this.dom.startButton.addEventListener('click', () => this._startGame());
+                
+                this.dom.restartButton.addEventListener('click', () => {
+                    this.gameStarted = false;
+                    this._disableControls();
+                    this.renderer.showSetupScreen();
+                    initialLoad();
+                });
+                 this.dom.btnReset.addEventListener('click', e => { e.preventDefault(); this._startGame(); });
+
+                document.addEventListener('keydown', e => {
+                    if (this.game.gameOver) {
+                        if (e.code === 'KeyR') {
+                            this.gameStarted = false;
+                            this._disableControls();
+                            this.renderer.showSetupScreen();
+                            initialLoad();
+                        }
+                        return;
+                    }
+
+                    if (!this.gameStarted) return;
+                    
+                    const actions = {
+                        ArrowLeft: () => this.game.move(-1, 0), ArrowRight: () => this.game.move(1, 0),
+                        ArrowDown: () => this.game.move(0, 1), ArrowUp: () => this.game.rotate(true),
+                        KeyZ: () => this.game.rotate(false), Space: () => this.game.hardDrop(),
+                        KeyC: () => this.game.hold(), KeyU: () => this.game.undo(), KeyI: () => this.game.redo(),
+                    };
+                    if (actions[e.code]) { e.preventDefault(); this._handleAction(actions[e.code]); }
+                });
+
+                window.addEventListener('resize', () => { this.renderer.resize(); this._redraw(); });
+
+                const singleClickActions = {
+                    btnHardDrop: () => this.game.hardDrop(), btnRotateLeft: () => this.game.rotate(false),
+                    btnRotateRight: () => this.game.rotate(true), btnHold: () => this.game.hold(),
+                    btnUndo: () => this.game.undo(), btnRedo: () => this.game.redo()
+                };
+                for (const [id, action] of Object.entries(singleClickActions)) {
+                    this.dom[id].addEventListener('click', e => { e.preventDefault(); this._handleAction(action); });
+                }
+
+                const longPressActions = {
+                    btnLeft: () => this.game.move(-1, 0), btnRight: () => this.game.move(1, 0), btnSoftDrop: () => this.game.move(0, 1)
+                };
+                let pressTimer = null, pressInterval = null;
+                const startPress = (action) => {
+                    this._handleAction(action);
+                    pressTimer = setTimeout(() => { pressInterval = setInterval(() => this._handleAction(action), 50); }, 200);
+                };
+                const endPress = () => { clearTimeout(pressTimer); clearInterval(pressInterval); };
+                for (const [id, action] of Object.entries(longPressActions)) {
+                    this.dom[id].addEventListener('mousedown', e => { e.preventDefault(); startPress(action); });
+                    this.dom[id].addEventListener('touchstart', e => { e.preventDefault(); startPress(action); }, { passive: false });
+                }
+                document.addEventListener('mouseup', endPress); document.addEventListener('touchend', endPress);
+            }
+        }
+
+        // Forward declaration for event listeners to access it.
+        let initialLoad;
+
+        // ---------------------------------------------------------------------
+        // 6. INITIALIZATION
+        // ---------------------------------------------------------------------
+        document.addEventListener('DOMContentLoaded', () => {
+            const DOM = {
+                mainContent: document.getElementById('main-content'),
+                gameContainer: document.getElementById('game-container'),
+                controlsWrapper: document.getElementById('controls-wrapper'),
+                canvas: document.getElementById('game-canvas'),
+                nextCanvas: document.getElementById('next-canvas'),
+                holdCanvas: document.getElementById('hold-canvas'),
+                setupScreen: document.getElementById('setup-screen'),
+                gameOverScreen: document.getElementById('game-over-screen'),
+                startButton: document.getElementById('start-button'),
+                restartButton: document.getElementById('restart-button'),
+                gameOverTitle: document.getElementById('game-over-title'),
+                gameResults: document.getElementById('game-results'),
+                queueContainer: document.getElementById('queue-container'),
+                queueText: document.getElementById('queue-text'),
+                goalsContainer: document.getElementById('goals-container'),
+                goalsList: document.getElementById('goals-list'),
+                holdDisabledOverlay: document.getElementById('hold-disabled-overlay'),
+                mobileControls: document.getElementById('mobile-controls'),
+                mobileControlsInner: document.getElementById('mobile-controls-inner'),
+                dropButtons: document.getElementById('drop-buttons'),
+                historyButtons: document.getElementById('history-buttons'),
+                resetButtonContainer: document.getElementById('reset-button-container'),
+                btnHold: document.getElementById('btn-hold'),
+                btnLeft: document.getElementById('btn-left'),
+                btnRight: document.getElementById('btn-right'),
+                btnSoftDrop: document.getElementById('btn-soft-drop'),
+                btnHardDrop: document.getElementById('btn-hard-drop'),
+                btnRotateLeft: document.getElementById('btn-rotate-left'),
+                btnRotateRight: document.getElementById('btn-rotate-right'),
+                btnUndo: document.getElementById('btn-undo'),
+                btnRedo: document.getElementById('btn-redo'),
+                btnReset: document.getElementById('btn-reset'),
+                archiveButton: document.getElementById('archive-button'),
+                archiveMenu: document.getElementById('archive-menu'),
+                archiveCloseButton: document.getElementById('archive-close-button'),
+                fileList: document.getElementById('file-list'),
+                loadingMessage: document.getElementById('loading-message'),
+                authorInfo: document.getElementById('author-info'),
+            };
+            
+            const game = new TetrisGame();
+            const renderer = new GameRenderer(DOM);
+            const controller = new GameController(game, renderer, DOM);
+
+            function displaySetupInfo(text, fileName, status) {
+                DOM.loadingMessage.classList.remove('text-green-500', 'text-red-500');
+                if (status === "Loaded" || status === "Continuing") {
+                     DOM.loadingMessage.classList.add('text-green-500');
+                } else {
+                     DOM.loadingMessage.classList.add('text-red-500');
+                }
+                DOM.loadingMessage.textContent = `${fileName}`;
+
+                let author = '';
+                if (text) {
+                    const authorMatch = text.match(/- author "([^"]+)"/);
+                    if (authorMatch && authorMatch[1]) {
+                        author = authorMatch[1];
+                    }
+                }
+                DOM.authorInfo.textContent = author ? `Author: ${author}` : '';
+            }
+
+            async function loadData(url) {
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                         throw new Error(`File not found: ${response.statusText}`);
+                    }
+                    const text = await response.text();
+                    return { success: true, text: text, url: url };
+                } catch (e) {
+                    console.error(`Failed to load data from ${url}:`, e);
+                    return { success: false, text: null, url: url };
+                }
+            }
+            
+            initialLoad = async function() {
+                DOM.startButton.disabled = true;
+                DOM.startButton.classList.add('opacity-50', 'cursor-not-allowed');
+
+                let urlToLoad = localStorage.getItem('nazotet_lastLoadedUrl');
+                let loadedFromStorage = !!urlToLoad;
+
+                if (!urlToLoad) {
+                    const todayDateStr = getFormattedDate();
+                    urlToLoad = `data/${todayDateStr}.dat`;
+                }
+
+                let result = await loadData(urlToLoad);
+
+                if (!result.success) {
+                    console.log(`${urlToLoad} not found. Trying sample.dat...`);
+                    urlToLoad = 'data/sample.dat';
+                    result = await loadData(urlToLoad);
+                    loadedFromStorage = false;
+                }
+
+                if (result.success) {
+                    const fileName = result.url.split('/').pop();
+                    localStorage.setItem('nazotet_lastLoadedUrl', result.url);
+                    controller.setCurrentSetupData(result.text, result.url);
+                    
+                    const statusText = loadedFromStorage ? 'Continuing' : 'Loaded';
+                    displaySetupInfo(result.text, fileName, statusText);
+                    
+                    game.reset(result.text);
+                    game.tetromino = null;
+                    renderer.render(game.getState());
+                    
+                    DOM.startButton.disabled = false;
+                    DOM.startButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                } else {
+                    controller.setCurrentSetupData('', '');
+                    localStorage.removeItem('nazotet_lastLoadedUrl');
+                    displaySetupInfo(null, 'any puzzle data', 'Not found');
+                    DOM.authorInfo.textContent = '';
+                    game.reset('');
+                    game.tetromino = null;
+                    renderer.render(game.getState());
+                }
+            }
+
+            async function handleArchiveClick(url) {
+                const result = await loadData(url);
+                const fileName = result.url.split('/').pop();
+                if (result.success) {
+                    localStorage.setItem('nazotet_lastLoadedUrl', result.url);
+                    controller.setCurrentSetupData(result.text, result.url);
+                    displaySetupInfo(result.text, fileName, 'Loaded');
+                    game.reset(result.text);
+                    game.tetromino = null; 
+                    renderer.render(game.getState());
+                    DOM.startButton.disabled = false;
+                    DOM.startButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+                DOM.archiveMenu.classList.add('hidden');
+            }
+            
+            async function buildArchiveList() {
+                DOM.fileList.innerHTML = '';
+                let clearedPuzzles = [];
+                try {
+                    const clearedPuzzlesRaw = localStorage.getItem('nazotet_clearedPuzzles');
+                    clearedPuzzles = clearedPuzzlesRaw ? JSON.parse(clearedPuzzlesRaw) : [];
+                } catch (e) { console.error('Could not parse cleared puzzles list.', e); }
+
+                let archiveFiles = [];
+                try {
+                    const response = await fetch('data/archive.json');
+                    if (response.ok) {
+                        archiveFiles = await response.json();
+                    } else {
+                       console.error("Could not load archive.json.");
+                    }
+                } catch (e) {
+                       console.error("Could not load archive.json.", e);
+                }
+
+
+                archiveFiles.sort((a, b) => {
+                    const nameA = a.replace('.dat', '');
+                    const nameB = b.replace('.dat', '');
+                    const isDateA = /^\d{8}$/.test(nameA);
+                    const isDateB = /^\d{8}$/.test(nameB);
+
+                    if (isDateA && isDateB) return nameB.localeCompare(nameA);
+                    if (isDateA) return -1;
+                    if (isDateB) return 1;
+                    return nameA.localeCompare(nameB);
+                });
+
+
+                archiveFiles.forEach(fileName => {
+                    const url = `data/${fileName}`;
+                    const button = document.createElement('button');
+                    button.className = 'bg-gray-900 hover:bg-gray-700 text-white text-sm py-2 px-3 w-full text-left flex justify-between items-center';
+                    
+                    const nameSpan = document.createElement('span');
+                    nameSpan.textContent = fileName;
+                    button.appendChild(nameSpan);
+
+                    if (clearedPuzzles.includes(fileName)) {
+                        const checkSpan = document.createElement('span');
+                        checkSpan.textContent = '✅';
+                        checkSpan.className = 'text-green-400';
+                        button.appendChild(checkSpan);
+                    }
+
+                    button.addEventListener('click', () => handleArchiveClick(url));
+                    DOM.fileList.appendChild(button);
+                });
+            }
+
+            DOM.archiveButton.addEventListener('click', () => {
+                buildArchiveList();
+                DOM.archiveMenu.classList.remove('hidden');
+            });
+            DOM.archiveCloseButton.addEventListener('click', () => {
+                DOM.archiveMenu.classList.add('hidden');
+            });
+            DOM.archiveMenu.addEventListener('click', (e) => {
+                if(e.target === DOM.archiveMenu) {
+                    DOM.archiveMenu.classList.add('hidden');
+                }
+            });
+
+
+            initialLoad();
+            
+            renderer.init(); controller.init();
+        });
+    })();
+    </script>
+</body>
+</html>
