@@ -801,7 +801,7 @@
                 })
                 .join('\n');
 
-                const shareText = `Today's NazoTet - ${puzzleName}\n\n${status}\n\n${results}\n\n#NazoTet`;
+                const shareText = `Today's NazoTet - ${puzzleName}\n${status}\n${results}\n#TodaysNazoTet\nhttps://kito-qwer.github.io/todays-nazotet`;
 
                 navigator.clipboard.writeText(shareText).then(() => {
                     const originalText = this.dom.resultsShareButton.textContent;
