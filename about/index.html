@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>About - Today's NazoTet</title>
+	<script src="https://cdn.tailwindcss.com"></script>
+	<style>
+		body {
+			font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+		}
+	</style>
+</head>
+<body class="bg-white dark:bg-black text-gray-800 dark:text-white transition-colors duration-300">
+
+	<div class="container mx-auto max-w-2xl p-4 sm:p-8">
+		<header class="mb-8 text-center">
+			<h1 class="text-3xl sm:text-4xl font-bold text-yellow-400">About Today's NazoTet</h1>
+		</header>
+
+		<main class="space-y-8">
+			<section>
+				<h2 class="text-2xl font-semibold border-b-2 border-gray-700 pb-2 mb-4">Today's NazoTetとは？ (What is Today's NazoTet?)</h2>
+				<p class="leading-relaxed">
+					<strong>Today's NazoTet</strong> は、毎日新しいナゾテトの問題に挑戦できるサイトです。過去の問題はアーカイブからいつでもプレイ可能です。
+				</p>
+			</section>
+            <section>
+				<h2 class="text-2xl font-semibold border-b-2 border-gray-700 pb-2 mb-4">ナゾテトとは？ (What is NazoTet)</h2>
+                    <p class="leading-relaxed">
+                        ナゾテトとは、決められた順番で出現するテトリミノを使い、あらかじめ設定された条件を満たすことを目指すパズルゲームです。条件には、TSDや全消し(PC)などがあります。そのほか、このサイトには実装されていませんが、3ライン消しやBBB(浮いているブロックが存在しない)などがあります。
+                    </p>
+            </section>
+
+			<section>
+				<h2 class="text-2xl font-semibold border-b-2 border-gray-700 pb-2 mb-4">遊び方 (How to Play)</h2>
+				<p class="mb-4">キーボードまたは画面下のボタンで操作します。</p>
+				<div class="bg-gray-900 p-4 sm:p-6 rounded-lg">
+					<h3 class="text-lg font-bold text-blue-400 mb-3">キーボード操作</h3>
+					<ul class="list-disc list-inside space-y-2 text-sm sm:text-base">
+						<li><span class="font-bold w-24 inline-block">← →</span>: 左右移動</li>
+						<li><span class="font-bold w-24 inline-block">↓</span>: ソフトドロップ</li>
+						<li><span class="font-bold w-24 inline-block">↑</span>: 右回転</li>
+						<li><span class="font-bold w-24 inline-block">Z</span>: 左回転</li>
+						<li><span class="font-bold w-24 inline-block">スペース</span>: ハードドロップ</li>
+						<li><span class="font-bold w-24 inline-block">C</span>: ホールド</li>
+						<li><span class="font-bold w-24 inline-block">U</span>: 一手戻す (Undo)</li>
+						<li><span class="font-bold w-24 inline-block">I</span>: 一手進む (Redo)</li>
+						<li><span class="font-bold w-24 inline-block">R</span>: リスタート (ゲームオーバー時)</li>
+					</ul>
+				</div>
+			</section>
+
+            <section>
+				<h2 class="text-2xl font-semibold border-b-2 border-gray-700 pb-2 mb-4">投稿 (Posting a Problem)</h2>
+                現状このサイトには実装されていません。X(Twitter)@kito_NazoTetのDMで受け付けています。
+            </section>
+
+			<section>
+				<h2 class="text-2xl font-semibold border-b-2 border-gray-700 pb-2 mb-4">クレジット (Credits)</h2>
+				<ul class="list-disc list-inside space-y-2">
+					<li><strong>Development:</strong> Gemini and kito-qwer</li>
+					<li><strong>Styling:</strong> Tailwind CSS</li>
+					<li><strong>Inspired by:</strong> The great puzzle Tetris community.</li>
+				</ul>
+			</section>
+
+			<section>
+				<h2 class="text-2xl font-semibold border-b-2 border-gray-700 pb-2 mb-4">フィードバック (Feedback)</h2>
+				<p>
+					バグの報告、ご意見などは、以下のGitHubリポジトリまたはX(Twitter)@kito_NazoTetまでお寄せください。
+				</p>
+				<div class="mt-4">
+					<a href="https://github.com/kito-qwer/todays-nazotet" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300 underline">
+						GitHub Repository
+					</a>
+				</div>
+			</section>
+
+		</main>
+
+		<footer class="text-center mt-12">
+			<a href="../index.html" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded">
+				ゲームに戻る
+			</a>
+		</footer>
+	</div>
+
+</body>
+</html>
