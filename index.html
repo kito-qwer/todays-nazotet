@@ -73,6 +73,9 @@
                 <canvas id="game-canvas" class="border-2 sm:border-4 border-gray-700 game-canvas"></canvas>
                 
                 <div id="setup-screen" class="absolute inset-0 bg-black bg-opacity-85 flex flex-col items-center justify-center text-center p-4 overflow-y-auto">
+                    <button id="about-button" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-1 px-4 mb-4 text-sm">
+                        About
+                    </button>
                     <button id="archive-button" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-1 px-4 mb-4 text-sm">
                         Archive
                     </button>
@@ -962,6 +965,7 @@
                 btnUndo: document.getElementById('btn-undo'),
                 btnRedo: document.getElementById('btn-redo'),
                 btnReset: document.getElementById('btn-reset'),
+                aboutButton: document.getElementById('about-button'),
                 archiveButton: document.getElementById('archive-button'),
                 archiveMenu: document.getElementById('archive-menu'),
                 archiveCloseButton: document.getElementById('archive-close-button'),
@@ -1127,6 +1131,9 @@
                 }
             });
 
+            DOM.aboutButton.addEventListener('click', () => {
+                window.open('about/index.html');
+            })
 
             initialLoad();
             
