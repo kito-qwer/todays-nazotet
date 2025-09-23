@@ -828,7 +828,7 @@
                 })
                 .join('\n');
 
-                const shareText = `Today's NazoTet - ${puzzleName}\n${status}\n${results}\n#TodaysNazoTet\nhttps://kito-qwer.github.io/todays-nazotet`;
+                const shareText = `Today's NazoTet - ${puzzleName}\n${status}\n${results}\n#TodaysNazoTet\nhttps://kito-qwer.github.io/todays-nazotet/?qid=${puzzleName.split('.')[0]}`;
 
                 navigator.clipboard.writeText(shareText).then(() => {
                     const originalText = this.dom.resultsShareButton.textContent;
@@ -845,7 +845,7 @@
             }
 
             _openFumen() {
-                window.open("https://knewjade.github.io/fumen-for-mobile/#?d=" + this.game.initialFieldTetfu);
+                window.open("https://knewjade.github.io/fumen-for-mobile/#?d=" + game.initialFieldTetfu);
             }
 
             _disableControls() {
@@ -1048,10 +1048,19 @@
                 DOM.startButton.disabled = true;
                 DOM.startButton.classList.add('opacity-50', 'cursor-not-allowed');
 
+                const params = new URLSearchParams(window.location.search);
+                const qid = params.get("qid");
+
                 const todayDateStr = getFormattedDate();
-                let urlToLoad = `data/${todayDateStr}.dat`
+                let urlToLoad = `data/${qid ? qid : todayDateStr}.dat`
 
                 let result = await loadData(urlToLoad);
+
+                if (!result.success && qid) {
+                    console.log(`${urlToLoad} not found. Trying sample.dat...`);
+                    urlToLoad = `data/${todayDateStr}.dat`;
+                    result = await loadData(urlToLoad);
+                }
 
                 if (!result.success) {
                     console.log(`${urlToLoad} not found. Trying sample.dat...`);
