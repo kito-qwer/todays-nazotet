@@ -243,9 +243,9 @@
         }
 
         // ---------------------------------------------------------------------
-        // 3. TETRIS GAME LOGIC (MODEL)
+        // 3. NAZOTET GAME LOGIC (MODEL)
         // ---------------------------------------------------------------------
-        class TetrisGame {
+        class NazotetGame {
             constructor() {
                 this.board = [];
                 this.tetromino = null;
@@ -272,8 +272,8 @@
                 this.gameOver = false;
                 this.lastMoveWasRotation = false;
                 this.lastRotationKickIndex = -1;
-                this.gameStats = { tss: 0, tsd: 0, tst: 0, miniTss: 0, miniTsd: 0, tetris: 0, perfectClear: 0 };
-                this.gameRules = { tss: 0, tsd: 0, tst: 0, miniTss: 0, miniTsd: 0, tetris: 0, perfectClear: 0, holdEnabled: true };
+                this.gameStats = { tss: 0, tsd: 0, tst: 0, miniTss: 0, miniTsd: 0, quad: 0, perfectClear: 0 };
+                this.gameRules = { tss: 0, tsd: 0, tst: 0, miniTss: 0, miniTsd: 0, quad: 0, perfectClear: 0, holdEnabled: true };
                 
                 this._parseInput(input);
                 this.initialFieldTetfu = this._encodeFumen(this, GameConstants);
@@ -345,7 +345,7 @@
                                     case 'TST': if(!isNaN(numValue)) this.gameRules.tst = numValue; break;
                                     case 'TSSM': if(!isNaN(numValue)) this.gameRules.miniTss = numValue; break;
                                     case 'TSDM': if(!isNaN(numValue)) this.gameRules.miniTsd = numValue; break;
-                                    case 'TET': if(!isNaN(numValue)) this.gameRules.tetris = numValue; break;
+                                    case 'QUAD': if(!isNaN(numValue)) this.gameRules.quad = numValue; break;
                                     case 'PC': if(!isNaN(numValue)) this.gameRules.perfectClear = numValue; break;
                                     case 'HOLD': this.gameRules.holdEnabled = value.toLowerCase() === 'true' || value === '1'; break;
                                 }
@@ -473,7 +473,7 @@
                     if (row.every(cell => cell !== 0)) { linesCleared++; return false; }
                     return true;
                 });
-                if (linesCleared === 4) this.gameStats.tetris++;
+                if (linesCleared === 4) this.gameStats.quad++;
                 for (let i = 0; i < linesCleared; i++) this.board.unshift(Array(GameConstants.COLS).fill(0));
                 if (linesCleared > 0 && this.board.every(row => row.every(cell => cell === 0))) this.gameStats.perfectClear++;
                 return linesCleared;
@@ -481,7 +481,7 @@
 
             checkWinConditions() {
                 if (Object.values(this.gameRules).every(val => val === 0 || typeof val === 'boolean')) return false;
-                return this.gameStats.tss >= this.gameRules.tss && this.gameStats.tsd >= this.gameRules.tsd && this.gameStats.tst >= this.gameRules.tst && this.gameStats.miniTss >= this.gameRules.miniTss && this.gameStats.miniTsd >= this.gameRules.miniTsd && this.gameStats.tetris >= this.gameRules.tetris && this.gameStats.perfectClear >= this.gameRules.perfectClear;
+                return this.gameStats.tss >= this.gameRules.tss && this.gameStats.tsd >= this.gameRules.tsd && this.gameStats.tst >= this.gameRules.tst && this.gameStats.miniTss >= this.gameRules.miniTss && this.gameStats.miniTsd >= this.gameRules.miniTsd && this.gameStats.quad >= this.gameRules.quad && this.gameStats.perfectClear >= this.gameRules.perfectClear;
             }
 
             saveState() {
@@ -660,7 +660,7 @@
             }
             _updateGoalsDisplay(stats, rules) {
                 if (!stats || !rules) return;
-                const mapping = [{k:'tss',l:'TSS'},{k:'tsd',l:'TSD'},{k:'tst',l:'TST'},{k:'miniTss',l:'Mini TSS'},{k:'miniTsd',l:'Mini TSD'},{k:'tetris',l:'Tetris'},{k:'perfectClear',l:'PC'}];
+                const mapping = [{k:'tss',l:'TSS'},{k:'tsd',l:'TSD'},{k:'tst',l:'TST'},{k:'miniTss',l:'Mini TSS'},{k:'miniTsd',l:'Mini TSD'},{k:'quad',l:'Quad'},{k:'perfectClear',l:'PC'}];
                 let hasGoals = false, html = '';
                 mapping.forEach(g => {
                     if (rules[g.k] > 0) {
@@ -690,7 +690,7 @@
                 this.dom.gameOverTitle.classList.toggle('text-red-500', !isWin);
                 this.dom.gameResults.innerHTML = `
                     <h3 class="text-lg mb-2 text-yellow-400">RESULTS (Goal)</h3>
-                    <table> ${Object.entries({TSS: 'tss', TSD: 'tsd', TST: 'tst', 'Mini TSS': 'miniTss', 'Mini TSD': 'miniTsd', Tetris: 'tetris', 'Perfect Clear': 'perfectClear'})
+                    <table> ${Object.entries({TSS: 'tss', TSD: 'tsd', TST: 'tst', 'Mini TSS': 'miniTss', 'Mini TSD': 'miniTsd', Quad: 'quad', 'Perfect Clear': 'perfectClear'})
                     .map(([label, key]) => `<tr><td class="pr-4">${label}</td><td>: ${stats[key]} (${rules[key]})</td></tr>`).join('')} </table>`;
                 this.dom.gameOverScreen.classList.remove('hidden'); this.dom.gameOverScreen.classList.add('flex');
             }
@@ -834,7 +834,7 @@
                 const results = Object.entries({
                     'TSS': 'tss', 'TSD': 'tsd', 'TST': 'tst',
                     'Mini TSS': 'miniTss', 'Mini TSD': 'miniTsd',
-                    'Tetris': 'tetris', 'PC': 'perfectClear'
+                    'Quad': 'quad', 'PC': 'perfectClear'
                 })
                 .filter(([_, key]) => this.game.gameRules[key] > 0) // 目標が設定されているもののみ表示
                 .map(([label, key]) => {
@@ -1023,7 +1023,7 @@
                 authorInfo: document.getElementById('author-info'),
             };
             
-            const game = new TetrisGame();
+            const game = new NazotetGame();
             const renderer = new GameRenderer(DOM);
             const controller = new GameController(game, renderer, DOM);
 
