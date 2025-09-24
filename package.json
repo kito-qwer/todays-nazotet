@@ -1,0 +1,12 @@
+{
+	"name": "todays-nazotet",
+	"version": "1.0.0",
+	"private": true,
+	"scripts": {
+		"build": "npx tailwindcss -i ./src/input.css -o ./style.css --minify"
+	},
+	"devDependencies": {
+		"tailwindcss": "^3.4.0"
+	}
+}
+
