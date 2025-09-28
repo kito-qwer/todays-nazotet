@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Today's NazoTet Formatter</title>
+    <link href="style.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+    </style>
+</head>
+<body class="bg-white dark:bg-black text-gray-800 dark:text-white transition-colors duration-300">
+    <div class="container mx-auto max-w-2xl p-4 sm:p-8">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl sm:text-4xl font-bold text-yellow-400">Today's NazoTet formatter</h1>
+        </header>
+
+        <main class="space-y-6">
+            
+            <div class="space-y-4">
+                <div>
+                    <label for="fumen" class="block mb-2 text-sm font-medium text-gray-400">Fumen</label>
+                    <input type="text" id="fumen" name="fumen_string" class="w-full p-2.5 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white" placeholder="v115@...">
+                </div>
+                <div>
+                    <label for="next" class="block mb-2 text-sm font-medium text-gray-400">Next Mino</label>
+                    <input type="text" id="next" name="next_string" class="w-full p-2.5 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white" placeholder="TISZ...">
+                </div>
+                <div>
+                    <label for="author" class="block mb-2 text-sm font-medium text-gray-400">Author</label>
+                    <input type="text" id="author" name="author_string" class="w-full p-2.5 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white" placeholder="Your name">
+                </div>
+            </div>
+
+            <fieldset class="border border-gray-600 p-4 rounded-lg">
+                <legend class="text-sm font-medium text-gray-400 px-2">Rules</legend>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-2">
+                    <div>
+                        <label for="tss" class="block mb-1 text-xs font-medium text-gray-400">TSS</label>
+                        <input type="number" id="tss" name="tss_count" class="w-full p-2 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white" placeholder="0" min="0">
+                    </div>
+                    <div>
+                        <label for="tsd" class="block mb-1 text-xs font-medium text-gray-400">TSD</label>
+                        <input type="number" id="tsd" name="tsd_count" class="w-full p-2 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white" placeholder="0" min="0">
+                    </div>
+                    <div>
+                        <label for="tst" class="block mb-1 text-xs font-medium text-gray-400">TST</label>
+                        <input type="number" id="tst" name="tst_count" class="w-full p-2 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white" placeholder="0" min="0">
+                    </div>
+                    <div>
+                        <label for="tssm" class="block mb-1 text-xs font-medium text-gray-400">Mini TSS</label>
+                        <input type="number" id="tssm" name="mini_tss_count" class="w-full p-2 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white" placeholder="0" min="0">
+                    </div>
+                    <div>
+                        <label for="tsdm" class="block mb-1 text-xs font-medium text-gray-400">Mini TSD</label>
+                        <input type="number" id="tsdm" name="mini_tsd_count" class="w-full p-2 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white" placeholder="0" min="0">
+                    </div>
+                    <div>
+                        <label for="quad" class="block mb-1 text-xs font-medium text-gray-400">Quad</label>
+                        <input type="number" id="quad" name="quad_count" class="w-full p-2 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white" placeholder="0" min="0">
+                    </div>
+                    <div class="col-span-2 sm:col-span-3">
+                        <label for="pc" class="block mb-1 text-xs font-medium text-gray-400">Perfect Clear</label>
+                        <input type="number" id="pc" name="pc_count" class="w-full p-2 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white" placeholder="0" min="0">
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset class="border border-gray-600 p-4 rounded-lg">
+                <legend class="text-sm font-medium text-gray-400 px-2">Hold</legend>
+                <div class="flex items-center space-x-6 mt-2">
+                    <div class="flex items-center">
+                        <input id="hold-yes" type="radio" name="hold_option" value="true" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                        <label for="hold-yes" class="ml-2 text-sm font-medium text-gray-300">Available</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input id="hold-no" type="radio" name="hold_option" value="false" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" checked>
+                        <label for="hold-no" class="ml-2 text-sm font-medium text-gray-300">Unavailable</label>
+                    </div>
+                </div>
+            </fieldset>
+
+            <div class="text-center pt-4">
+                    <button id="formatButton" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 transition-colors rounded-lg">
+                        Format
+                    </button>
+            </div>
+
+            <div>
+                    <label for="output" class="block mb-2 text-sm font-medium text-gray-400">Result</label>
+                    <textarea id="output" rows="8" class="w-full p-2.5 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" readonly></textarea>
+            </div>
+        </main>
+
+        <footer class="text-center mt-12">
+            <a href="../index.html" class="text-blue-400 hover:text-blue-300 underline">
+                Back Game
+            </a>
+        </footer>
+    </div>
+    <script src="../scripts/fumen-parser.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', ()=> {
+            const formatButton = document.getElementById('formatButton');
+            const outputArea = document.getElementById('output');
+            formatButton.addEventListener('click', () => {
+                const formData = {
+                    fumen: document.getElementById('fumen').value,
+                    next: document.getElementById('next').value,
+                    author: document.getElementById('author').value,
+                    rules: {
+                        TSS: parseInt(document.getElementById('tss').value, 10) || 0,
+                        TSD: parseInt(document.getElementById('tsd').value, 10) || 0,
+                        TST: parseInt(document.getElementById('tst').value, 10) || 0,
+                        TSSM: parseInt(document.getElementById('tssm').value, 10) || 0,
+                        TSDM: parseInt(document.getElementById('tsdm').value, 10) || 0,
+                        QUAD: parseInt(document.getElementById('quad').value, 10) || 0,
+                        PC: parseInt(document.getElementById('pc').value, 10) || 0,
+                    },
+                    hold: document.querySelector('input[name="hold_option"]:checked').value === 'true',
+                };
+                if (true) {
+                    const decodeFumen = Tetfu.Fumen.decode(formData.fumen);
+                    let outputText = '';
+                    if (decodeFumen) {
+                        const firstPage = decodeFumen.getPages()[0];
+                        let field = "";
+                        const blockType = {
+                            0: 'N', 1: 'I', 2: 'L', 3: 'O', 4: 'Z',
+                            5: 'T', 6: 'J', 7: 'S', 8: 'G',
+                        };
+                        let hasStartedPrinting = false;
+                        for (let y = 0; y < Tetfu.FIELD_HEIGHT; y++) {
+                            let rowString = '';
+                            let isRowEmpty = true;
+                            for (let x = 0; x < Tetfu.FIELD_WIDTH; x++) {
+                                const block = firstPage.field[y * Tetfu.FIELD_WIDTH + x];
+                                rowString += blockType[block];
+                                if (block !== 0) {
+                                    isRowEmpty = false;
+                                }
+                            }
+                            if (hasStartedPrinting || ! isRowEmpty) {
+                                field += rowString + '\n';
+                                hasStartedPrinting = true;
+                            }
+                        }
+                        outputText = `- field\n${field}`;
+                    }
+                    outputText += `- next\n${formData.next}\n`;
+                    outputText += `- rule\n`;
+                    const ruleEntries = Object.entries(formData.rules);
+                    const activeRules = ruleEntries.filter(([rulename, count]) => count > 0);
+                    if (activeRules.length > 0) {
+                        activeRules.forEach(([ruleName, count]) => {
+                            outputText += `-- ${ruleName} ${count}\n`;
+                        });
+                    }
+                    if (! formData.hold) {
+                        outputText += `-- HOLD false\n`;
+                    }
+                    if (formData.author) {
+                        outputText += `- author ${formData.author}\n`;
+                    }
+                    outputArea.value = outputText;
+                }
+            })
+        })
+    </script>
+</body>
+</html>
