@@ -34,7 +34,7 @@
                 </div>
             </div>
 
-            <fieldset class="border border-gray-600 p-4 rounded-lg">
+            <fieldset class="border border-gray-600 p-4">
                 <legend class="text-sm font-medium text-gray-400 px-2">Rules</legend>
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-2">
                     <div>
@@ -68,7 +68,7 @@
                 </div>
             </fieldset>
 
-            <fieldset class="border border-gray-600 p-4 rounded-lg">
+            <fieldset class="border border-gray-600 p-4">
                 <legend class="text-sm font-medium text-gray-400 px-2">Hold</legend>
                 <div class="flex items-center space-x-6 mt-2">
                     <div class="flex items-center">
@@ -83,7 +83,7 @@
             </fieldset>
 
             <div class="text-center pt-4">
-                    <button id="formatButton" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 transition-colors rounded-lg">
+                    <button id="formatButton" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 transition-colors">
                         Format
                     </button>
             </div>
@@ -132,7 +132,7 @@
                             5: 'T', 6: 'J', 7: 'S', 8: 'G',
                         };
                         let hasStartedPrinting = false;
-                        for (let y = 0; y < Tetfu.FIELD_HEIGHT; y++) {
+                        for (let y = 0; y < Tetfu.FIELD_HEIGHT - 1; y++) {
                             let rowString = '';
                             let isRowEmpty = true;
                             for (let x = 0; x < Tetfu.FIELD_WIDTH; x++) {
@@ -162,7 +162,7 @@
                         outputText += `-- HOLD false\n`;
                     }
                     if (formData.author) {
-                        outputText += `- author ${formData.author}\n`;
+                        outputText += `- author "${formData.author}"\n`;
                     }
                     outputArea.value = outputText;
                 }
