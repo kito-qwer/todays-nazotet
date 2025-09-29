@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Today's NazoTet Formatter</title>
     <link href="../style.css" rel="stylesheet">
-    <!-- <script src="https://cdn.tailwindcss.com"></script> -->
+    <!--<script src="https://cdn.tailwindcss.com"></script>-->
     <style>
         body {
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
@@ -26,17 +26,17 @@
                 <div>
                     <label for="fumen" class="block mb-2 text-sm font-medium text-gray-400">Fumen</label>
                     <input type="text" id="fumen" name="fumen_string"
-                        class="w-full p-2.5 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white"
+                        class="h-10 w-full p-2.5 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white"
                         placeholder="v115@...">
                 </div>
                 <div>
                     <label for="next" class="block mb-2 text-sm font-medium text-gray-400">Next Mino</label>
-                    <div class="flex space-x-2">
+                    <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
                         <input type="text" id="next" name="next_string"
-                            class="flex-1 p-2.5 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white"
+                            class="h-10 p-2.5 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white"
                             placeholder="TISZ...">
                         <button id="fillNextButton"
-                            class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 transition-color">
+                            class="h-10 bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 transition-color">
                             Fill from Fumen
                         </button>
                     </div>
@@ -44,7 +44,7 @@
                 <div>
                     <label for="author" class="block mb-2 text-sm font-medium text-gray-400">Author</label>
                     <input type="text" id="author" name="author_string"
-                        class="w-full p-2.5 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white"
+                        class="h-10 w-full p-2.5 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white"
                         placeholder="Your name">
                 </div>
             </div>
@@ -55,43 +55,43 @@
                     <div>
                         <label for="tss" class="block mb-1 text-xs font-medium text-gray-400">TSS</label>
                         <input type="number" id="tss" name="tss_count"
-                            class="w-full p-2 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white"
+                            class="h-10 w-full p-2 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white"
                             placeholder="0" min="0">
                     </div>
                     <div>
                         <label for="tsd" class="block mb-1 text-xs font-medium text-gray-400">TSD</label>
                         <input type="number" id="tsd" name="tsd_count"
-                            class="w-full p-2 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white"
+                            class="h-10 w-full p-2 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white"
                             placeholder="0" min="0">
                     </div>
                     <div>
                         <label for="tst" class="block mb-1 text-xs font-medium text-gray-400">TST</label>
                         <input type="number" id="tst" name="tst_count"
-                            class="w-full p-2 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white"
+                            class="h-10 w-full p-2 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white"
                             placeholder="0" min="0">
                     </div>
                     <div>
                         <label for="tssm" class="block mb-1 text-xs font-medium text-gray-400">Mini TSS</label>
                         <input type="number" id="tssm" name="mini_tss_count"
-                            class="w-full p-2 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white"
+                            class="h-10 w-full p-2 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white"
                             placeholder="0" min="0">
                     </div>
                     <div>
                         <label for="tsdm" class="block mb-1 text-xs font-medium text-gray-400">Mini TSD</label>
                         <input type="number" id="tsdm" name="mini_tsd_count"
-                            class="w-full p-2 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white"
+                            class="h-10 w-full p-2 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white"
                             placeholder="0" min="0">
                     </div>
                     <div>
                         <label for="quad" class="block mb-1 text-xs font-medium text-gray-400">Quad</label>
                         <input type="number" id="quad" name="quad_count"
-                            class="w-full p-2 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white"
+                            class="h-10 w-full p-2 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white"
                             placeholder="0" min="0">
                     </div>
                     <div class="col-span-2 sm:col-span-3">
                         <label for="pc" class="block mb-1 text-xs font-medium text-gray-400">Perfect Clear</label>
                         <input type="number" id="pc" name="pc_count"
-                            class="w-full p-2 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white"
+                            class="h-10 w-full p-2 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white"
                             placeholder="0" min="0">
                     </div>
                 </div>
@@ -116,7 +116,7 @@
 
             <div class="text-center pt-4">
                 <button id="formatButton"
-                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 transition-colors">
+                    class="h-10 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 transition-colors">
                     Format
                 </button>
             </div>
