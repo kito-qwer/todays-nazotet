@@ -363,7 +363,7 @@
                 if (decodedFumen && decodedFumen.getPages().length > 0) {
                     const firstPage = decodedFumen.getPages()[0];
                     field = firstPage.field;
-                    const comment = firstPage.comment || "";
+                    const comment = firstPage.flags.comment || "";
 
                     if (formData.next === "") {
                         const nextMatch = comment.match(/^#Q=\[[ILOZTJS]?\]\(([ILOZTJS])\)([ILOZTJS]*)/);
