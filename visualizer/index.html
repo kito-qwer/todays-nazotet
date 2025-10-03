@@ -351,13 +351,14 @@
                         TSS: parseInt(document.getElementById('tss').value, 10) || 0,
                         TSD: parseInt(document.getElementById('tsd').value, 10) || 0,
                         TST: parseInt(document.getElementById('tst').value, 10) || 0,
-                        TSSM: parseInt(document.getElementById('tssm').value, 10) || 0,
-                        TSDM: parseInt(document.getElementById('tsdm').value, 10) || 0,
+                        miniTSS: parseInt(document.getElementById('tssm').value, 10) || 0,
+                        miniTSD: parseInt(document.getElementById('tsdm').value, 10) || 0,
                         QUAD: parseInt(document.getElementById('quad').value, 10) || 0,
                         PC: parseInt(document.getElementById('pc').value, 10) || 0,
                     },
                     otherRules: document.getElementById('otherRules').value,
                 };
+                
 
                 const decodedFumen = Tetfu.Fumen.decode(formData.fumen);
                 if (decodedFumen && decodedFumen.getPages().length > 0) {
@@ -367,16 +368,30 @@
 
                     if (formData.next === "") {
                         const nextMatch = comment.match(/^#Q=\[[ILOZTJS]?\]\(([ILOZTJS])\)([ILOZTJS]*)/);
-                        if (nextMatch) document.getElementById('next').value = nextMatch[1] + nextMatch[2];
+                        if (nextMatch) {
+                            formData.next = nextMatch[1] + nextMatch[2];
+                        }
                     }
                     if (formData.hold === "") {
-                        const holdMatch = comment.match(/^#Q=\[([ILOZTJS])\]\([ILOZTJS]\)/);
-                        if (holdMatch) document.getElementById('hold').value = holdMatch[1];
+                        const holdMatch = comment.match(/^#Q=\[([ILOZTJS])\]\([ILOZTJS]\)[ILOZTJS]/);
+                        if (holdMatch) {
+                            formData.hold = holdMatch[1];
+                        }
                     }
                 }
 
-                nextQueue = /^[ILOZTJS]+$/i.test(formData.next) ? formData.next.toUpperCase() : '';
-                holdPiece = /^[ILOZTJSX]$/i.test(formData.hold) ? formData.hold.toUpperCase() : '';
+                if (/^[ILOZTJS]+$/i.test(formData.next)) {
+                    nextQueue = formData.next.toUpperCase();
+                    document.getElementById('next').value = nextQueue;
+                } else {
+                    nextQueue = '';
+                }
+                if (/^[ILOZTJSX]$/i.test(formData.hold)) {
+                    holdPiece = formData.hold.toUpperCase();
+                    document.getElementById('hold').value = holdPiece;
+                } else {
+                    holdPiece = '';
+                }
                 author = formData.author;
                 activeRules = Object.entries(formData.rules).filter(([, count]) => count > 0);
 
