@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NazoTet Visualizer</title>
+    <link href="../style.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+    </style>
+</head>
+
+<body class="bg-white dark:bg-black text-gray-800 dark:text-white transition-colors duration-300">
+    <div class="container mx-auto max-w-2xl p-4 sm:p-8">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl sm:text-4xl font-bold text-yellow-400">NazoTet Visualizer</h1>
+        </header>
+
+        <main class="space-y-6">
+
+            <div class="space-y-4">
+                <div>
+                    <label for="fumen" class="block mb-2 text-sm font-medium">Fumen</label>
+                    <input type="text" id="fumen" name="fumen_string"
+                        class="h-10 w-full p-2.5 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white"
+                        placeholder="v115@...">
+                </div>
+                <div>
+                    <label for="next" class="block mb-2 text-sm font-medium">Next Mino</label>
+                    <input type="text" id="next" name="next_string"
+                        class="h-10 w-full p-2.5 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white"
+                        placeholder="TISZ...">
+                </div>
+                <div>
+                    <label for="hold" class="block mb-2 text-sm font-medium">Hold Mino</label>
+                    <input type="text" id="hold" name="hold_string"
+                        class="h-10 w-full p-2.5 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white"
+                        placeholder="Initial hold (If hold is unavailable, fill in 'X')">
+                </div>
+                <div>
+                    <label for="author" class="block mb-2 text-sm font-medium">Author</label>
+                    <input type="text" id="author" name="author_string"
+                        class="h-10 w-full p-2.5 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white"
+                        placeholder="Your name">
+                </div>
+            </div>
+
+            <fieldset class="border border-gray-600 p-4">
+                <legend class="text-sm font-medium px-2">Rules</legend>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-2">
+                    <div>
+                        <label for="tss" class="block mb-1 text-xs font-medium">TSS</label>
+                        <input type="number" id="tss" name="tss_count"
+                            class="h-10 w-full p-2 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white"
+                            placeholder="0" min="0">
+                    </div>
+                    <div>
+                        <label for="tsd" class="block mb-1 text-xs font-medium">TSD</label>
+                        <input type="number" id="tsd" name="tsd_count"
+                            class="h-10 w-full p-2 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white"
+                            placeholder="0" min="0">
+                    </div>
+                    <div>
+                        <label for="tst" class="block mb-1 text-xs font-medium">TST</label>
+                        <input type="number" id="tst" name="tst_count"
+                            class="h-10 w-full p-2 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white"
+                            placeholder="0" min="0">
+                    </div>
+                    <div>
+                        <label for="tssm" class="block mb-1 text-xs font-medium">Mini TSS</label>
+                        <input type="number" id="tssm" name="mini_tss_count"
+                            class="h-10 w-full p-2 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white"
+                            placeholder="0" min="0">
+                    </div>
+                    <div>
+                        <label for="tsdm" class="block mb-1 text-xs font-medium">Mini TSD</label>
+                        <input type="number" id="tsdm" name="mini_tsd_count"
+                            class="h-10 w-full p-2 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white"
+                            placeholder="0" min="0">
+                    </div>
+                    <div>
+                        <label for="quad" class="block mb-1 text-xs font-medium">Quad</label>
+                        <input type="number" id="quad" name="quad_count"
+                            class="h-10 w-full p-2 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white"
+                            placeholder="0" min="0">
+                    </div>
+                    <div class="col-span-2 sm:col-span-3">
+                        <label for="pc" class="block mb-1 text-xs font-medium">Perfect Clear</label>
+                        <input type="number" id="pc" name="pc_count"
+                            class="h-10 w-full p-2 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white"
+                            placeholder="0" min="0">
+                    </div>
+                    <div class="col-span-2 sm:col-span-3">
+                        <label for="otherRules" class="block mb-1 text-xs font-medium">Other Rules</label>
+                        <textarea id="otherRules" name="otherRules"
+                            class="w-full p-2 bg-gray-50 border border-gray-600 text-gray-800 text-sm focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-300 dark:text-white"
+                            placeholder="Combos: 3&#10;Back-to-Back: 2" rows="2"></textarea>
+                    </div>
+                </div>
+            </fieldset>
+
+            <div class="text-center pt-4">
+                <button id="visualizeButton"
+                    class="h-10 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 transition-colors">
+                    Visualize
+                </button>
+                <button id="downloadButton"
+                    class="h-10 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 transition-colors">
+                    Image Download
+                </button>
+            </div>
+
+            <div class="flex p-10 justify-center bg-gray-200">
+                <canvas id="visualizer" width="440" height="600"></canvas>
+            </div>
+        </main>
+
+        </footer>
+    </div>
+    <script src="../scripts/fumen-parser.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const visualizeButton = document.getElementById('visualizeButton');
+            const downloadButton = document.getElementById('downloadButton');
+
+            const COLS = Tetfu.FIELD_WIDTH;
+            const ROWS = Tetfu.FIELD_HEIGHT - 1;
+            const CELL_SIZE = 20;
+
+            let field = Array(240).fill(0);
+            let nextQueue = '';
+            let holdPiece = '';
+            let activeRules = [];
+            let author = '';
+            let otherRules = [];
+
+            const canvas = document.getElementById('visualizer');
+            const ctx = canvas.getContext('2d');
+            ctx.translate(0.5, 0.5);
+
+            // 描画
+            function draw() {
+                const CANVAS_PADDING_LEFT_IN_CELLS = 6;
+                const FIELD_BUFFER_ZONE_HEIGHT = 3;
+
+                const PIECE_AREA_WIDTH_IN_CELLS = 4;
+                const PIECE_AREA_HEIGHT_IN_CELLS = 3;
+                const PIECE_AREA_MARGIN_IN_CELLS = 1;
+                const AREA_LABEL_OFFSET_Y = 5;
+                const AREA_BOX_PADDING_X = 5;
+
+                const NEXT_PIECES_TO_DRAW_COUNT = 6;
+                const NEXT_PIECE_VERTICAL_GAP_IN_CELLS = 0.5;
+                const NEXT_TEXT_CHARS_PER_LINE = 8;
+                const NEXT_TEXT_LINE_HEIGHT = 20;
+
+                const LABEL_FONT = '16px "Source Code Pro", monospace';
+                const MESSAGE_FONT = '13px "Source Code Pro", monospace';
+                const AUTHOR_RULES_FONT = '14px "Source Code Pro", monospace';
+
+                const startX = CELL_SIZE * CANVAS_PADDING_LEFT_IN_CELLS;
+                const startY = (canvas.height - ROWS * CELL_SIZE) / 2;
+
+                const blockColors = { 0: 'black', 1: 'aqua', 2: 'orange', 3: 'yellow', 4: 'red', 5: 'fuchsia', 6: 'blue', 7: 'lime', 8: 'silver' };
+                const blockShapes = { 1: [[1, 1, 1, 1]], 2: [[0, 0, 1], [1, 1, 1]], 3: [[1, 1], [1, 1]], 4: [[1, 1, 0], [0, 1, 1]], 5: [[0, 1, 0], [1, 1, 1]], 6: [[1, 0, 0], [1, 1, 1]], 7: [[0, 1, 1], [1, 1, 0]] };
+                const pieceTypeMap = { 'I': 1, 'L': 2, 'O': 3, 'Z': 4, 'T': 5, 'J': 6, 'S': 7, 'X': -1 };
+
+                const drawPiece = (pieceId, areaX, areaY) => {
+                    if (!pieceId || pieceId < 1) return;
+                    const shape = blockShapes[pieceId];
+                    const color = blockColors[pieceId];
+                    const pieceWidth = shape[0].length;
+                    const pieceHeight = shape.length;
+                    const offsetX = areaX + (CELL_SIZE * PIECE_AREA_WIDTH_IN_CELLS - pieceWidth * CELL_SIZE) / 2;
+                    const offsetY = areaY + (CELL_SIZE * PIECE_AREA_HEIGHT_IN_CELLS - pieceHeight * CELL_SIZE) / 2;
+                    ctx.fillStyle = color;
+                    for (let y = 0; y < pieceHeight; y++) {
+                        for (let x = 0; x < pieceWidth; x++) {
+                            if (shape[y][x]) {
+                                ctx.fillRect(offsetX + x * CELL_SIZE, offsetY + y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                            }
+                        }
+                    }
+                };
+
+                // --- 描画開始 ---
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // フィールドとグリッド描画
+                ctx.fillStyle = 'black';
+                ctx.fillRect(startX, startY, COLS * CELL_SIZE, ROWS * CELL_SIZE);
+                for (let y = 0; y < ROWS; y++) {
+                    for (let x = 0; x < COLS; x++) {
+                        const blockValue = field[y * COLS + x];
+                        ctx.fillStyle = blockColors[blockValue] || 'dimgray';
+                        if (y < FIELD_BUFFER_ZONE_HEIGHT && blockValue == 0) ctx.fillStyle = 'dimgray';
+                        ctx.fillRect(startX + x * CELL_SIZE, startY + y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                    }
+                }
+                ctx.strokeStyle = 'dimgray';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                const endX = startX + COLS * CELL_SIZE;
+                const endY = startY + ROWS * CELL_SIZE;
+                for (let x = 0; x <= COLS; x++) { const currentX = startX + x * CELL_SIZE; ctx.moveTo(currentX, startY); ctx.lineTo(currentX, endY); }
+                for (let y = 0; y <= ROWS; y++) { const currentY = startY + y * CELL_SIZE; ctx.moveTo(startX, currentY); ctx.lineTo(endX, currentY); }
+                ctx.stroke();
+
+                const holdAreaX = startX - (PIECE_AREA_WIDTH_IN_CELLS + PIECE_AREA_MARGIN_IN_CELLS) * CELL_SIZE;
+                const holdAreaY = startY;
+                const nextAreaX = endX + PIECE_AREA_MARGIN_IN_CELLS * CELL_SIZE;
+                const nextAreaY = startY;
+                const areaWidth = CELL_SIZE * PIECE_AREA_WIDTH_IN_CELLS;
+                const areaHeight = CELL_SIZE * PIECE_AREA_HEIGHT_IN_CELLS;
+
+                // --- HOLD描画 ---
+                ctx.fillStyle = 'black';
+                ctx.font = LABEL_FONT;
+                ctx.textAlign = 'start';
+                ctx.textBaseline = 'alphabetic';
+                ctx.fillText('HOLD', holdAreaX, holdAreaY - AREA_LABEL_OFFSET_Y);
+                ctx.fillStyle = 'silver';
+                ctx.fillRect(holdAreaX - AREA_BOX_PADDING_X, holdAreaY, areaWidth + AREA_BOX_PADDING_X * 2, areaHeight);
+                let holdMessage = 'Available';
+                if (holdPiece) {
+                    const pieceId = pieceTypeMap[holdPiece];
+                    if (pieceId > 0) {
+                        holdMessage = '';
+                        drawPiece(pieceId, holdAreaX, holdAreaY);
+                    } else if (pieceId === -1) {
+                        holdMessage = 'Unavailable';
+                    }
+                }
+                if (holdMessage) {
+                    ctx.fillStyle = 'black';
+                    ctx.font = MESSAGE_FONT;
+                    const textMetrics = ctx.measureText(holdMessage);
+                    const textX = holdAreaX + (areaWidth - textMetrics.width) / 2;
+                    const textY = holdAreaY + areaHeight / 2;
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(holdMessage, textX, textY);
+                }
+
+                // --- NEXT描画 ---
+                ctx.fillStyle = 'black';
+                ctx.font = LABEL_FONT;
+                ctx.textAlign = 'start';
+                ctx.textBaseline = 'alphabetic';
+                ctx.fillText('NEXT', nextAreaX, nextAreaY - AREA_LABEL_OFFSET_Y);
+                if (nextQueue) {
+                    const piecesToDraw = Math.min(nextQueue.length, NEXT_PIECES_TO_DRAW_COUNT);
+                    for (let i = 0; i < piecesToDraw; i++) {
+                        const currentY = nextAreaY + i * (areaHeight + CELL_SIZE * NEXT_PIECE_VERTICAL_GAP_IN_CELLS);
+                        ctx.fillStyle = 'silver';
+                        ctx.fillRect(nextAreaX - AREA_BOX_PADDING_X, currentY, areaWidth + AREA_BOX_PADDING_X * 2, areaHeight);
+                        const pieceId = pieceTypeMap[nextQueue[i]];
+                        drawPiece(pieceId, nextAreaX, currentY);
+                        ctx.fillStyle = 'black';
+                    }
+                    const remainingQueue = nextQueue.slice(NEXT_PIECES_TO_DRAW_COUNT);
+                    if (remainingQueue) {
+                        let textY = nextAreaY + NEXT_PIECES_TO_DRAW_COUNT * (areaHeight + CELL_SIZE * NEXT_PIECE_VERTICAL_GAP_IN_CELLS) + 12;
+                        for (let i = 0; i < remainingQueue.length; i += NEXT_TEXT_CHARS_PER_LINE) {
+                            const line = remainingQueue.substring(i, i + NEXT_TEXT_CHARS_PER_LINE);
+                            ctx.fillText(line, nextAreaX, textY);
+                            textY += NEXT_TEXT_LINE_HEIGHT;
+                        }
+                    }
+                }
+
+                {
+                    let currentY = holdAreaY + areaHeight + 20; // 描画開始のY座標
+                    const lineHeight = 20;
+                    const indent = 5;
+
+                    // --- Authorの描画 ---
+                    if (author) {
+                        ctx.font = AUTHOR_RULES_FONT;
+                        ctx.fillStyle = 'black';
+                        ctx.textAlign = 'start';
+                        ctx.textBaseline = 'alphabetic';
+
+                        ctx.fillText('Author', holdAreaX, currentY);
+                        currentY += lineHeight;
+
+                        // フォントサイズを動的に調整
+                        const initialFontSize = 14;
+                        const textMetrics = ctx.measureText(author);
+                        let authorFontSize = initialFontSize;
+                        if (textMetrics.width > areaWidth - indent) {
+                            authorFontSize = initialFontSize * ((areaWidth - indent) / textMetrics.width);
+                        }
+                        ctx.font = `${authorFontSize}px "Source Code Pro", monospace`;
+                        ctx.fillText(author, holdAreaX + indent, currentY);
+                        currentY += lineHeight; // セクション間の余白
+                    }
+
+                    // --- Rulesの描画 ---
+                    if (activeRules.length > 0 || otherRules.length > 0) {
+                        ctx.font = AUTHOR_RULES_FONT;
+                        ctx.fillStyle = 'black';
+                        ctx.textAlign = 'start';
+                        ctx.textBaseline = 'alphabetic';
+
+                        ctx.fillText('Rules', holdAreaX, currentY);
+                        currentY += lineHeight;
+
+                        // 各ルール項目を描画
+                        activeRules.forEach(([ruleName, count]) => {
+                            ctx.fillText(`${ruleName}: ${count}`, holdAreaX + indent, currentY);
+                            currentY += lineHeight;
+                        });
+                        otherRules.forEach(rule => {
+                            ctx.fillText(rule, holdAreaX + indent, currentY);
+                            currentY += lineHeight;
+                        });
+                    }
+                }
+
+                // --- 右下のクレジット表示 ---
+                const padding = 5;
+                const attribution = 'This image is generated by NazoTet Visualizer.';
+                ctx.font = '10px "Source Code Pro", monospace';
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'bottom';
+                ctx.fillStyle = 'gray';
+                ctx.fillText(attribution, canvas.width - padding, canvas.height - padding);
+
+                // --- 最後に必ずデフォルト値にリセット ---
+                ctx.textAlign = 'start';
+                ctx.textBaseline = 'alphabetic';
+            }
+
+            draw();
+
+            visualizeButton.addEventListener('click', () => {
+                const formData = {
+                    fumen: document.getElementById('fumen').value,
+                    next: document.getElementById('next').value,
+                    hold: document.getElementById('hold').value,
+                    author: document.getElementById('author').value,
+                    rules: {
+                        TSS: parseInt(document.getElementById('tss').value, 10) || 0,
+                        TSD: parseInt(document.getElementById('tsd').value, 10) || 0,
+                        TST: parseInt(document.getElementById('tst').value, 10) || 0,
+                        TSSM: parseInt(document.getElementById('tssm').value, 10) || 0,
+                        TSDM: parseInt(document.getElementById('tsdm').value, 10) || 0,
+                        QUAD: parseInt(document.getElementById('quad').value, 10) || 0,
+                        PC: parseInt(document.getElementById('pc').value, 10) || 0,
+                    },
+                    otherRules: document.getElementById('otherRules').value,
+                };
+
+                const decodedFumen = Tetfu.Fumen.decode(formData.fumen);
+                if (decodedFumen && decodedFumen.getPages().length > 0) {
+                    const firstPage = decodedFumen.getPages()[0];
+                    field = firstPage.field;
+                    const comment = firstPage.comment || "";
+
+                    if (formData.next === "") {
+                        const nextMatch = comment.match(/^#Q=\[[ILOZTJS]?\]\(([ILOZTJS])\)([ILOZTJS]*)/);
+                        if (nextMatch) document.getElementById('next').value = nextMatch[1] + nextMatch[2];
+                    }
+                    if (formData.hold === "") {
+                        const holdMatch = comment.match(/^#Q=\[([ILOZTJS])\]\([ILOZTJS]\)/);
+                        if (holdMatch) document.getElementById('hold').value = holdMatch[1];
+                    }
+                }
+
+                nextQueue = /^[ILOZTJS]+$/i.test(formData.next) ? formData.next.toUpperCase() : '';
+                holdPiece = /^[ILOZTJSX]$/i.test(formData.hold) ? formData.hold.toUpperCase() : '';
+                author = formData.author;
+                activeRules = Object.entries(formData.rules).filter(([, count]) => count > 0);
+
+                otherRules = formData.otherRules ? formData.otherRules.split('\n').filter(line => line.trim() !== '') : [];
+
+                draw();
+            });
+
+            downloadButton.addEventListener('click', () => {
+                const dataUrl = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.href = dataUrl;
+                const now = new Date();
+                const timestamp = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}`;
+                link.download = `nazotet_${timestamp}.png`;
+                link.click();
+            });
+
+            // 初期描画
+            draw();
+        });
+    </script>
+</body>
+
+</html>
