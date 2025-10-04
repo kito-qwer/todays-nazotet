@@ -6,18 +6,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NazoTet Visualizer</title>
     <link href="../style.css" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+
+        #visualizer {
+            width: 440px;
+            height: 600px;
         }
     </style>
 </head>
 
 <body class="bg-white dark:bg-black text-gray-800 dark:text-white transition-colors duration-300">
-    <div class="container mx-auto max-w-2xl p-4 sm:p-8">
+    <div class="visualizer mx-auto max-w-2xl p-4 sm:p-8">
         <header class="mb-8 text-center">
             <h1 class="text-3xl sm:text-4xl font-bold text-yellow-400">NazoTet Visualizer</h1>
         </header>
@@ -112,22 +114,29 @@
                 </button>
                 <button id="downloadButton"
                     class="h-10 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 transition-colors">
-                    Image Download
+                    Image Download (svg)
+                </button>
+                <button id="downloadButtonPng"
+                    class="h-10 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 transition-colors">
+                    Image Download (png)
                 </button>
             </div>
+    </div>
 
-            <div class="flex p-10 justify-center bg-gray-200">
-                <canvas id="visualizer" width="440" height="600"></canvas>
-            </div>
-        </main>
+    <div class="flex p-10 justify-center bg-gray-200">
+        <div id="visualizer"></div>
+    </div>
+    </div>
+    </main>
 
-        </footer>
+    </footer>
     </div>
     <script src="../scripts/fumen-parser.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const visualizeButton = document.getElementById('visualizeButton');
             const downloadButton = document.getElementById('downloadButton');
+            const downloadButtonPng = document.getElementById('downloadButtonPng');
 
             const COLS = Tetfu.FIELD_WIDTH;
             const ROWS = Tetfu.FIELD_HEIGHT - 1;
@@ -140,12 +149,33 @@
             let author = '';
             let otherRules = [];
 
-            const canvas = document.getElementById('visualizer');
-            const ctx = canvas.getContext('2d');
-            ctx.translate(0.5, 0.5);
+            const visualizer = document.getElementById('visualizer');
 
             // 描画
+            function calculateDynamicFontSize(text, initialSize, maxWidth, fontFamily) {
+                if (typeof document === 'undefined') {
+                    // Node.jsなどdocumentがない環境では、計算を行わず初期サイズを返す
+                    return initialSize;
+                }
+                // 一時的な非表示Canvasを作成してテキスト幅を測定
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                ctx.font = `${initialSize}px ${fontFamily}`;
+                const textMetrics = ctx.measureText(text);
+
+                if (textMetrics.width > maxWidth) {
+                    // 幅が最大値を超えていたら、比率でフォントサイズを縮小する
+                    return initialSize * (maxWidth / textMetrics.width);
+                }
+                return initialSize;
+            }
+
             function draw() {
+
+                const width = visualizer.clientWidth;
+                const height = visualizer.clientHeight;
+
+                // --- 定数定義 ---
                 const CANVAS_PADDING_LEFT_IN_CELLS = 6;
                 const FIELD_BUFFER_ZONE_HEIGHT = 3;
 
@@ -160,166 +190,150 @@
                 const NEXT_TEXT_CHARS_PER_LINE = 8;
                 const NEXT_TEXT_LINE_HEIGHT = 20;
 
-                const LABEL_FONT = '16px "Source Code Pro", monospace';
-                const MESSAGE_FONT = '13px "Source Code Pro", monospace';
-                const AUTHOR_RULES_FONT = '14px "Source Code Pro", monospace';
+                const FONT_FAMILY_MONO = 'ui-monospace, "SF Mono", "Menlo", "Consolas", "Liberation Mono", "Courier New", monospace';
+                const LABEL_FONT_FAMILY = FONT_FAMILY_MONO;
+                const MESSAGE_FONT_FAMILY = FONT_FAMILY_MONO;
+                const AUTHOR_RULES_FONT_FAMILY = FONT_FAMILY_MONO;
+                const CREDIT_FONT_FAMILY = FONT_FAMILY_MONO;
 
+                // --- 座標・サイズ計算 ---
                 const startX = CELL_SIZE * CANVAS_PADDING_LEFT_IN_CELLS;
-                const startY = (canvas.height - ROWS * CELL_SIZE) / 2;
+                const startY = (height - ROWS * CELL_SIZE) / 2;
+                const endX = startX + COLS * CELL_SIZE;
+                const endY = startY + ROWS * CELL_SIZE;
 
+                const areaWidth = CELL_SIZE * PIECE_AREA_WIDTH_IN_CELLS;
+                const areaHeight = CELL_SIZE * PIECE_AREA_HEIGHT_IN_CELLS;
+                const holdAreaX = startX - (PIECE_AREA_WIDTH_IN_CELLS + PIECE_AREA_MARGIN_IN_CELLS) * CELL_SIZE;
+                const holdAreaY = startY;
+                const nextAreaX = endX + PIECE_AREA_MARGIN_IN_CELLS * CELL_SIZE;
+                const nextAreaY = startY;
+
+                // --- データ定義 ---
                 const blockColors = { 0: 'black', 1: 'aqua', 2: 'orange', 3: 'yellow', 4: 'red', 5: 'fuchsia', 6: 'blue', 7: 'lime', 8: 'silver' };
                 const blockShapes = { 1: [[1, 1, 1, 1]], 2: [[0, 0, 1], [1, 1, 1]], 3: [[1, 1], [1, 1]], 4: [[1, 1, 0], [0, 1, 1]], 5: [[0, 1, 0], [1, 1, 1]], 6: [[1, 0, 0], [1, 1, 1]], 7: [[0, 1, 1], [1, 1, 0]] };
                 const pieceTypeMap = { 'I': 1, 'L': 2, 'O': 3, 'Z': 4, 'T': 5, 'J': 6, 'S': 7, 'X': -1 };
 
-                const drawPiece = (pieceId, areaX, areaY) => {
-                    if (!pieceId || pieceId < 1) return;
+                // SVG要素を格納する配列
+                const svgElements = [];
+
+                const drawPieceSVG = (pieceId, areaX, areaY) => {
+                    if (!pieceId || pieceId < 1) return '';
                     const shape = blockShapes[pieceId];
                     const color = blockColors[pieceId];
                     const pieceWidth = shape[0].length;
                     const pieceHeight = shape.length;
                     const offsetX = areaX + (CELL_SIZE * PIECE_AREA_WIDTH_IN_CELLS - pieceWidth * CELL_SIZE) / 2;
                     const offsetY = areaY + (CELL_SIZE * PIECE_AREA_HEIGHT_IN_CELLS - pieceHeight * CELL_SIZE) / 2;
-                    ctx.fillStyle = color;
+
+                    let pieceSVG = '';
                     for (let y = 0; y < pieceHeight; y++) {
                         for (let x = 0; x < pieceWidth; x++) {
                             if (shape[y][x]) {
-                                ctx.fillRect(offsetX + x * CELL_SIZE, offsetY + y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                                pieceSVG += `<rect x="${offsetX + x * CELL_SIZE}" y="${offsetY + y * CELL_SIZE}" width="${CELL_SIZE}" height="${CELL_SIZE}" fill="${color}" />\n`;
                             }
                         }
                     }
+                    return pieceSVG;
                 };
 
-                // --- 描画開始 ---
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                // --- SVG描画開始 ---
 
-                // フィールドとグリッド描画
-                ctx.fillStyle = 'black';
-                ctx.fillRect(startX, startY, COLS * CELL_SIZE, ROWS * CELL_SIZE);
+                // 全体の背景
+                svgElements.push(`<rect x="0" y="0" width="${width}" height="${height}" fill="#ffffff" />`);
+
+                // フィールド背景
+                svgElements.push(`<rect x="${startX}" y="${startY}" width="${COLS * CELL_SIZE}" height="${ROWS * CELL_SIZE}" fill="black" />`);
+
+                // フィールド内のブロックを描画
                 for (let y = 0; y < ROWS; y++) {
                     for (let x = 0; x < COLS; x++) {
                         const blockValue = field[y * COLS + x];
-                        ctx.fillStyle = blockColors[blockValue] || 'dimgray';
-                        if (y < FIELD_BUFFER_ZONE_HEIGHT && blockValue == 0) ctx.fillStyle = 'dimgray';
-                        ctx.fillRect(startX + x * CELL_SIZE, startY + y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                        let color = blockColors[blockValue] || 'dimgray';
+                        if (y < FIELD_BUFFER_ZONE_HEIGHT && blockValue == 0) {
+                            color = 'dimgray';
+                        }
+                        svgElements.push(`<rect x="${startX + x * CELL_SIZE}" y="${startY + y * CELL_SIZE}" width="${CELL_SIZE}" height="${CELL_SIZE}" fill="${color}" />`);
                     }
                 }
-                ctx.strokeStyle = 'dimgray';
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                const endX = startX + COLS * CELL_SIZE;
-                const endY = startY + ROWS * CELL_SIZE;
-                for (let x = 0; x <= COLS; x++) { const currentX = startX + x * CELL_SIZE; ctx.moveTo(currentX, startY); ctx.lineTo(currentX, endY); }
-                for (let y = 0; y <= ROWS; y++) { const currentY = startY + y * CELL_SIZE; ctx.moveTo(startX, currentY); ctx.lineTo(endX, currentY); }
-                ctx.stroke();
 
-                const holdAreaX = startX - (PIECE_AREA_WIDTH_IN_CELLS + PIECE_AREA_MARGIN_IN_CELLS) * CELL_SIZE;
-                const holdAreaY = startY;
-                const nextAreaX = endX + PIECE_AREA_MARGIN_IN_CELLS * CELL_SIZE;
-                const nextAreaY = startY;
-                const areaWidth = CELL_SIZE * PIECE_AREA_WIDTH_IN_CELLS;
-                const areaHeight = CELL_SIZE * PIECE_AREA_HEIGHT_IN_CELLS;
+                // グリッド線の描画（<path>で一括描画）
+                let pathData = '';
+                for (let x = 0; x <= COLS; x++) { const currentX = startX + x * CELL_SIZE; pathData += `M${currentX},${startY} L${currentX},${endY} `; }
+                for (let y = 0; y <= ROWS; y++) { const currentY = startY + y * CELL_SIZE; pathData += `M${startX},${currentY} L${endX},${currentY} `; }
+                svgElements.push(`<path d="${pathData}" stroke="dimgray" stroke-width="1" fill="none" />`);
 
                 // --- HOLD描画 ---
-                ctx.fillStyle = 'black';
-                ctx.font = LABEL_FONT;
-                ctx.textAlign = 'start';
-                ctx.textBaseline = 'alphabetic';
-                ctx.fillText('HOLD', holdAreaX, holdAreaY - AREA_LABEL_OFFSET_Y);
-                ctx.fillStyle = 'silver';
-                ctx.fillRect(holdAreaX - AREA_BOX_PADDING_X, holdAreaY, areaWidth + AREA_BOX_PADDING_X * 2, areaHeight);
+                svgElements.push(`<text x="${holdAreaX}" y="${holdAreaY - AREA_LABEL_OFFSET_Y}" font-family='${LABEL_FONT_FAMILY}' font-size="16px" fill="black" text-anchor="start" dominant-baseline="alphabetic">HOLD</text>`);
+                svgElements.push(`<rect x="${holdAreaX - AREA_BOX_PADDING_X}" y="${holdAreaY}" width="${areaWidth + AREA_BOX_PADDING_X * 2}" height="${areaHeight}" fill="silver" />`);
+
                 let holdMessage = 'Available';
                 if (holdPiece) {
                     const pieceId = pieceTypeMap[holdPiece];
                     if (pieceId > 0) {
                         holdMessage = '';
-                        drawPiece(pieceId, holdAreaX, holdAreaY);
+                        svgElements.push(drawPieceSVG(pieceId, holdAreaX, holdAreaY));
                     } else if (pieceId === -1) {
                         holdMessage = 'Unavailable';
                     }
                 }
                 if (holdMessage) {
-                    ctx.fillStyle = 'black';
-                    ctx.font = MESSAGE_FONT;
-                    const textMetrics = ctx.measureText(holdMessage);
-                    const textX = holdAreaX + (areaWidth - textMetrics.width) / 2;
+                    const textX = holdAreaX + areaWidth / 2;
                     const textY = holdAreaY + areaHeight / 2;
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(holdMessage, textX, textY);
+                    svgElements.push(`<text x="${textX}" y="${textY}" font-family='${MESSAGE_FONT_FAMILY}' font-size="13px" fill="black" text-anchor="middle" dominant-baseline="middle">${holdMessage}</text>`);
                 }
 
                 // --- NEXT描画 ---
-                ctx.fillStyle = 'black';
-                ctx.font = LABEL_FONT;
-                ctx.textAlign = 'start';
-                ctx.textBaseline = 'alphabetic';
-                ctx.fillText('NEXT', nextAreaX, nextAreaY - AREA_LABEL_OFFSET_Y);
+                svgElements.push(`<text x="${nextAreaX}" y="${nextAreaY - AREA_LABEL_OFFSET_Y}" font-family='${LABEL_FONT_FAMILY}' font-size="16px" fill="black" text-anchor="start" dominant-baseline="alphabetic">NEXT</text>`);
                 if (nextQueue) {
                     const piecesToDraw = Math.min(nextQueue.length, NEXT_PIECES_TO_DRAW_COUNT);
                     for (let i = 0; i < piecesToDraw; i++) {
                         const currentY = nextAreaY + i * (areaHeight + CELL_SIZE * NEXT_PIECE_VERTICAL_GAP_IN_CELLS);
-                        ctx.fillStyle = 'silver';
-                        ctx.fillRect(nextAreaX - AREA_BOX_PADDING_X, currentY, areaWidth + AREA_BOX_PADDING_X * 2, areaHeight);
+                        svgElements.push(`<rect x="${nextAreaX - AREA_BOX_PADDING_X}" y="${currentY}" width="${areaWidth + AREA_BOX_PADDING_X * 2}" height="${areaHeight}" fill="silver" />`);
                         const pieceId = pieceTypeMap[nextQueue[i]];
-                        drawPiece(pieceId, nextAreaX, currentY);
-                        ctx.fillStyle = 'black';
+                        svgElements.push(drawPieceSVG(pieceId, nextAreaX, currentY));
                     }
                     const remainingQueue = nextQueue.slice(NEXT_PIECES_TO_DRAW_COUNT);
                     if (remainingQueue) {
                         let textY = nextAreaY + NEXT_PIECES_TO_DRAW_COUNT * (areaHeight + CELL_SIZE * NEXT_PIECE_VERTICAL_GAP_IN_CELLS) + 12;
                         for (let i = 0; i < remainingQueue.length; i += NEXT_TEXT_CHARS_PER_LINE) {
                             const line = remainingQueue.substring(i, i + NEXT_TEXT_CHARS_PER_LINE);
-                            ctx.fillText(line, nextAreaX, textY);
+                            svgElements.push(`<text x="${nextAreaX}" y="${textY}" font-family='${LABEL_FONT_FAMILY}' font-size="16px" fill="black">${line}</text>`);
                             textY += NEXT_TEXT_LINE_HEIGHT;
                         }
                     }
                 }
 
+                // --- Author & Rules描画 ---
                 {
-                    let currentY = holdAreaY + areaHeight + 20; // 描画開始のY座標
+                    let currentY = holdAreaY + areaHeight + 20;
                     const lineHeight = 20;
                     const indent = 5;
 
-                    // --- Authorの描画 ---
                     if (author) {
-                        ctx.font = AUTHOR_RULES_FONT;
-                        ctx.fillStyle = 'black';
-                        ctx.textAlign = 'start';
-                        ctx.textBaseline = 'alphabetic';
-
-                        ctx.fillText('Author', holdAreaX, currentY);
+                        svgElements.push(`<text x="${holdAreaX}" y="${currentY}" font-family='${AUTHOR_RULES_FONT_FAMILY}' font-size="14px" fill="black">Author</text>`);
                         currentY += lineHeight;
 
-                        // フォントサイズを動的に調整
+                        // 動的フォントサイズを計算
                         const initialFontSize = 14;
-                        const textMetrics = ctx.measureText(author);
-                        let authorFontSize = initialFontSize;
-                        if (textMetrics.width > areaWidth - indent) {
-                            authorFontSize = initialFontSize * ((areaWidth - indent) / textMetrics.width);
-                        }
-                        ctx.font = `${authorFontSize}px "Source Code Pro", monospace`;
-                        ctx.fillText(author, holdAreaX + indent, currentY);
-                        currentY += lineHeight; // セクション間の余白
+                        const maxWidth = areaWidth - indent;
+                        const authorFontSize = calculateDynamicFontSize(author, initialFontSize, maxWidth, AUTHOR_RULES_FONT_FAMILY);
+
+                        // 計算されたフォントサイズを適用
+                        svgElements.push(`<text x="${holdAreaX + indent}" y="${currentY}" font-family='${AUTHOR_RULES_FONT_FAMILY}' font-size="${authorFontSize.toFixed(2)}px" fill="black">${author}</text>`);
+                        currentY += lineHeight;
                     }
 
-                    // --- Rulesの描画 ---
                     if (activeRules.length > 0 || otherRules.length > 0) {
-                        ctx.font = AUTHOR_RULES_FONT;
-                        ctx.fillStyle = 'black';
-                        ctx.textAlign = 'start';
-                        ctx.textBaseline = 'alphabetic';
-
-                        ctx.fillText('Rules', holdAreaX, currentY);
+                        svgElements.push(`<text x="${holdAreaX}" y="${currentY}" font-family='${AUTHOR_RULES_FONT_FAMILY}' font-size="14px" fill="black">Rules</text>`);
                         currentY += lineHeight;
 
-                        // 各ルール項目を描画
                         activeRules.forEach(([ruleName, count]) => {
-                            ctx.fillText(`${ruleName}: ${count}`, holdAreaX + indent, currentY);
+                            svgElements.push(`<text x="${holdAreaX + indent}" y="${currentY}" font-family='${AUTHOR_RULES_FONT_FAMILY}' font-size="14px" fill="black">${ruleName}: ${count}</text>`);
                             currentY += lineHeight;
                         });
                         otherRules.forEach(rule => {
-                            ctx.fillText(rule, holdAreaX + indent, currentY);
+                            svgElements.push(`<text x="${holdAreaX + indent}" y="${currentY}" font-family='${AUTHOR_RULES_FONT_FAMILY}' font-size="14px" fill="black">${rule}</text>`);
                             currentY += lineHeight;
                         });
                     }
@@ -327,16 +341,12 @@
 
                 // --- 右下のクレジット表示 ---
                 const padding = 5;
-                const attribution = 'This image is generated by NazoTet Visualizer.';
-                ctx.font = '10px "Source Code Pro", monospace';
-                ctx.textAlign = 'right';
-                ctx.textBaseline = 'bottom';
-                ctx.fillStyle = 'gray';
-                ctx.fillText(attribution, canvas.width - padding, canvas.height - padding);
+                const attribution = 'This image was generated by NazoTet Visualizer.';
+                svgElements.push(`<text x="${width - padding}" y="${height - padding}" font-family='${CREDIT_FONT_FAMILY}' font-size="10px" fill="gray" text-anchor="end" dominant-baseline="alphabetic">${attribution}</text>`);
 
-                // --- 最後に必ずデフォルト値にリセット ---
-                ctx.textAlign = 'start';
-                ctx.textBaseline = 'alphabetic';
+                // --- 最終的なSVG文字列を組み立てる ---
+                const svgString = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg" style="background-color: #ffffff;">\n${svgElements.join('\n')}\n</svg>`;
+                visualizer.innerHTML = svgString;
             }
 
             draw();
@@ -358,7 +368,7 @@
                     },
                     otherRules: document.getElementById('otherRules').value,
                 };
-                
+
 
                 const decodedFumen = Tetfu.Fumen.decode(formData.fumen);
                 if (decodedFumen && decodedFumen.getPages().length > 0) {
@@ -401,13 +411,57 @@
             });
 
             downloadButton.addEventListener('click', () => {
-                const dataUrl = canvas.toDataURL('image/png');
+                const svgString = visualizer.innerHTML;
+
+                const dataUrl = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
+
                 const link = document.createElement('a');
                 link.href = dataUrl;
+
                 const now = new Date();
                 const timestamp = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}`;
-                link.download = `nazotet_${timestamp}.png`;
+
+                link.download = `nazotet_${timestamp}.svg`;
+
                 link.click();
+            });
+            
+            downloadButtonPng.addEventListener('click', () => {
+                const visualizer = document.getElementById('visualizer');
+                const svgString = visualizer.innerHTML;
+
+                const width = visualizer.clientWidth;
+                const height = visualizer.clientHeight;
+
+                const svgDataUrl = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
+
+                const img = new Image();
+
+                img.onload = () => {
+                    const scale = 2;
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width * scale;
+                    canvas.height = height * scale;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.scale(scale, scale);
+
+                    ctx.drawImage(img, 0, 0);
+
+                    const pngDataUrl = canvas.toDataURL('image/png');
+
+                    const link = document.createElement('a');
+                    link.href = pngDataUrl;
+
+                    const now = new Date();
+                    const timestamp = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}`;
+
+                    link.download = `nazotet_${timestamp}.png`;
+                    link.click();
+                };
+
+                img.src = svgDataUrl;
             });
 
             // 初期描画
