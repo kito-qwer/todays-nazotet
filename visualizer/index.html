@@ -301,7 +301,7 @@
                         let textY = nextAreaY + NEXT_PIECES_TO_DRAW_COUNT * (areaHeight + CELL_SIZE * NEXT_PIECE_VERTICAL_GAP_IN_CELLS) + 12;
                         for (let i = 0; i < remainingQueue.length; i += NEXT_TEXT_CHARS_PER_LINE) {
                             const line = remainingQueue.substring(i, i + NEXT_TEXT_CHARS_PER_LINE);
-                            svgElements.push(`<text x="${nextAreaX - 4}" y="${textY}" font-family='${LABEL_FONT_FAMILY}' font-size="16px" fill="black">→</text>`);
+                            svgElements.push(`<text x="${nextAreaX - 4}" y="${textY}" font-family='${LABEL_FONT_FAMILY}' font-size="16px" fill="black">></text>`);
                             svgElements.push(`<text x="${nextAreaX + 10}" y="${textY}" font-family='${LABEL_FONT_FAMILY}' font-size="16px" fill="black">${line}</text>`);
                             textY += NEXT_TEXT_LINE_HEIGHT;
                         }
