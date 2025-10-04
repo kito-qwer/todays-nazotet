@@ -10,7 +10,12 @@
         body {
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
         }
-
+        #visualizer-wrapper {
+            width: 600px;
+            height: 800px;
+            overflow: auto;
+            max-width: 100%;
+        }
         #visualizer {
             width: 440px;
             height: 600px;
@@ -122,10 +127,10 @@
                 </button>
             </div>
     </div>
-
-    <div class="flex p-10 justify-center bg-gray-200">
-        <div id="visualizer"></div>
-    </div>
+    <div class="flex justify-center bg-gray-200">
+        <div id="visualizer-wrapper" class="p-10">
+            <div id="visualizer"></div>
+        </div>
     </div>
     </main>
 
